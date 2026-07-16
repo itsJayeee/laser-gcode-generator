@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G-code Generator</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap">
+<style>
+  :root{
+    --bg:#e6e8dc; --panel:#edefe5; --panel2:#dcded1; --sunken:#dcded1;
+    --line:#23241d; --line-strong:#191a15; --line-soft:#c7c9bc; --stroke:1.5px;
+    --txt:#191a15; --txt2:#3b3d33; --mut:#8b8d80; --faint:#a8aa9c;
+    --accent:#191a15; --on:#edefe5; --dim:rgba(25,26,21,.07);
+    --accent2:#4f7a3f; --warn:#9a7b2e; --danger:#a83a2a;
+    --font:"Space Mono",ui-monospace,Menlo,"PingFang SC","Microsoft YaHei",monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:var(--font);background:var(--bg);color:var(--txt);font-size:13px;
+    display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+  *::-webkit-scrollbar{width:10px;height:10px}
+  *::-webkit-scrollbar-thumb{background:var(--faint);border-radius:8px;border:3px solid transparent;background-clip:padding-box}
+  *::-webkit-scrollbar-track{background:transparent}
+  header{padding:14px 20px;border-bottom:var(--stroke) solid var(--line);display:flex;align-items:center;gap:13px;flex-shrink:0}
+  header .logo{width:24px;height:24px;border-radius:7px;background:var(--accent)}
+  header h1{font-size:20px;margin:0;font-weight:700;letter-spacing:-.01em}
+  header .sub{color:var(--mut);font-size:12px}
+  .langbtn{margin-left:auto;width:auto;height:32px;padding:0 14px;background:transparent;border:var(--stroke) solid var(--line);
+    border-radius:999px;color:var(--txt);font-family:inherit;font-weight:700;font-size:12px;cursor:pointer}
+  .langbtn:hover{background:var(--dim)}
+  .wrap{display:grid;grid-template-columns:410px 1fr;flex:1;min-height:0}
+  .left{border-right:var(--stroke) solid var(--line);overflow-y:auto;padding:16px;background:var(--bg)}
+  .right{display:flex;flex-direction:column;overflow:hidden}
+  .sec{background:var(--panel);border:var(--stroke) solid var(--line);border-radius:16px;padding:15px;margin-bottom:13px}
+  .sec h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--txt);margin:0 0 11px;
+    display:flex;justify-content:space-between;align-items:center;font-weight:700}
+  label{display:block;color:var(--mut);margin:9px 0 4px;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  input,select,textarea{width:100%;background:var(--sunken);border:var(--stroke) solid var(--line);color:var(--txt);
+    border-radius:10px;padding:8px 10px;font-size:13px;font-family:inherit}
+  input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);vertical-align:middle}
+  input[type=range]{padding:0;accent-color:var(--accent);background:transparent}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--line-strong);box-shadow:0 0 0 3px rgba(25,26,21,.16)}
+  select{appearance:none;-webkit-appearance:none;padding-right:26px;
+    background-image:linear-gradient(45deg,transparent 50%,var(--txt) 50%),linear-gradient(135deg,var(--txt) 50%,transparent 50%);
+    background-position:calc(100% - 15px) 55%,calc(100% - 10px) 55%;background-size:5px 5px,5px 5px;background-repeat:no-repeat}
+  .row{display:flex;gap:9px}.row>*{flex:1;min-width:0}
+  button{background:var(--accent);color:var(--on);border:var(--stroke) solid var(--line-strong);border-radius:10px;
+    padding:10px 12px;font-size:13px;font-weight:700;cursor:pointer;width:100%;font-family:inherit}
+  button:hover{background:#2d2f26}
+  button:active{transform:translateY(1px)}
+  button.ghost{background:transparent;border-color:var(--line);color:var(--txt);font-weight:700}
+  button.ghost:hover{background:var(--dim)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  .drop{border:var(--stroke) dashed var(--line);border-radius:10px;padding:20px;text-align:center;color:var(--mut);cursor:pointer;background:var(--sunken)}
+  .drop.hover{border-color:var(--line-strong);color:var(--txt);background:var(--dim)}
+  .hint{color:var(--mut);font-size:11px;line-height:1.6;margin-top:7px}
+  .imp{color:var(--danger)}
+  .lcard{border:var(--stroke) solid var(--line);border-radius:12px;margin-bottom:9px;overflow:hidden;background:var(--panel)}
+  .lcard.sel{border-color:var(--line-strong)}
+  .lhead{display:grid;grid-template-columns:20px 54px 1fr 30px 22px;gap:8px;align-items:center;padding:9px 11px;cursor:pointer}
+  .lhead:hover{background:var(--dim)}
+  .sw{width:13px;height:13px;border-radius:3px;display:inline-block;vertical-align:middle;border:var(--stroke) solid var(--line)}
+  .seg{display:inline-flex;border:var(--stroke) solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{width:34px;height:28px;padding:0;border:none;border-right:var(--stroke) solid var(--line);background:transparent;color:var(--mut);font-weight:400;font-size:14px;border-radius:0}
+  .seg button:last-child{border-right:none}
+  .seg button:hover{color:var(--txt);background:var(--dim)}
+  .seg button.on{background:var(--accent);color:var(--on)}
+  .obadge{font-size:11px;color:var(--mut);text-align:center;font-variant-numeric:tabular-nums}
+  .chev{color:var(--mut);text-align:center;font-size:11px}
+  .lbody{padding:4px 11px 12px;border-top:var(--stroke) solid var(--line);background:var(--sunken)}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+  .fillbox{background:var(--panel);border:var(--stroke) solid var(--line);border-radius:10px;padding:11px;margin-top:9px}
+  .fillbox .grid2,.fillbox .grid4{align-items:end}
+  .tag{font-size:10px;padding:2px 9px;border-radius:999px;background:transparent;border:var(--stroke) solid var(--line-soft);color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+  .toolbar{padding:11px 15px;border-bottom:var(--stroke) solid var(--line);display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+  .stat{color:var(--mut);font-size:12px;border:var(--stroke) solid var(--line);border-radius:999px;padding:4px 12px;white-space:nowrap}
+  .stat b{color:var(--txt);font-weight:700;font-variant-numeric:tabular-nums}
+  .canvas-wrap{flex:1;position:relative;background:var(--bg);overflow:hidden;cursor:grab}
+  canvas{position:absolute;top:0;left:0}
+  .cvhint{position:absolute;left:12px;bottom:10px;font-size:11px;color:var(--mut);pointer-events:none;
+    background:var(--bg);padding:2px 9px;border:var(--stroke) solid var(--line-soft);border-radius:999px;opacity:.9}
+  .gcode{flex:1;min-height:0;border-top:var(--stroke) solid var(--line);display:flex;flex-direction:column}
+  .gcode .bar{padding:8px 14px;border-bottom:var(--stroke) solid var(--line);display:flex;justify-content:space-between;align-items:center;color:var(--mut);font-weight:700}
+  .gcode textarea{flex:1;background:var(--sunken);color:var(--txt2);border:none;border-radius:0;font-family:var(--font);font-size:11.5px;line-height:1.55;padding:12px 14px;resize:none;white-space:pre;overflow:auto}
+  .gcode textarea:focus{box-shadow:none}
+  .vtabs{display:inline-flex;border:var(--stroke) solid var(--line);border-radius:999px;padding:3px}
+  .vtabs button{width:auto;padding:5px 15px;border:none;background:transparent;color:var(--mut);font-weight:700;font-size:12px;cursor:pointer;border-radius:999px}
+  .vtabs button:hover{color:var(--txt)}
+  .vtabs button.on{background:var(--accent);color:var(--on)}
+  .legend{display:flex;gap:14px;font-size:11px;color:var(--mut);align-items:center}
+  .ln{width:18px;height:0;border-top:2px solid;display:inline-block}
+  .badge{font-size:10px;padding:2px 9px;border-radius:999px;background:transparent;border:var(--stroke) solid var(--line);color:var(--txt);font-weight:700}
+  .modal-overlay{position:fixed;inset:0;background:rgba(25,26,21,.32);display:flex;align-items:center;justify-content:center;z-index:50}
+  .modal{background:var(--panel);border:var(--stroke) solid var(--line);border-radius:22px;width:780px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden}
+  .modal-head{padding:15px 18px;border-bottom:var(--stroke) solid var(--line);display:flex;justify-content:space-between;align-items:center;font-weight:700}
+  .modal-body{display:grid;grid-template-columns:240px 1fr;flex:1;overflow:hidden;min-height:0}
+  .pm-list{border-right:var(--stroke) solid var(--line);overflow-y:auto;padding:9px;background:var(--sunken)}
+  .pm-item{padding:9px 11px;border-radius:10px;cursor:pointer;margin-bottom:5px;border:var(--stroke) solid transparent}
+  .pm-item:hover{background:var(--dim)}
+  .pm-item.sel{background:var(--panel);border-color:var(--line)}
+  .pm-item .nm{font-size:13px;color:var(--txt);font-weight:700}
+  .pm-item .mt{font-size:11px;color:var(--mut);margin-top:3px;font-variant-numeric:tabular-nums}
+  .pm-form{padding:16px 18px;overflow-y:auto}
+  .pm-empty{color:var(--mut);text-align:center;padding:46px 14px;font-size:12px;line-height:1.8}
+  .modal-foot{padding:12px 18px;border-top:var(--stroke) solid var(--line);display:flex;gap:9px;align-items:center}
+  .modal-foot button,.modal-head button{width:auto;padding:8px 13px}
+</style>
+</head>
+<body>
+<header>
+  <span class="logo"></span>
+  <h1 data-i18n="app">G-code Generator</h1>
+  <span class="sub" data-i18n="sub">SVG → 路径模式 + 优化 → GRBL G-code · 纯本地</span>
+  <button class="langbtn" id="langBtn">EN</button>
+</header>
+<div class="wrap">
+  <div class="left">
+    <div class="sec">
+      <h2 data-i18n="sec1">1 · 导入</h2>
+      <div id="drop" class="drop" data-i18n="drop">点击或拖入 SVG 文件</div>
+      <input id="file" type="file" accept=".svg,image/svg+xml" style="display:none">
+      <div class="hint" id="importInfo" data-i18n="importDefault">按描边颜色自动分层。支持 path/line/polyline/polygon/rect/circle/ellipse。</div>
+    </div>
+
+    <div class="sec">
+      <h2 data-i18n="sec2">2 · 尺寸 &amp; 机器</h2>
+      <div class="row">
+        <div><label data-i18n="outW">输出宽度 (mm)</label><input id="outW" type="number" value="100" min="1" step="1"></div>
+        <div><label data-i18n="origin">原点</label><select id="origin"><option value="bl" data-i18n="origin_bl">左下角</option><option value="center" data-i18n="origin_c">居中</option></select></div>
+      </div>
+      <div class="row">
+        <div><label data-i18n="maxS">S 上限 ($30)</label><select id="maxS"><option value="1000">1000</option><option value="255">255</option></select></div>
+        <div><label data-i18n="rapid">空程 G0 (mm/min)</label><input id="rapid" type="number" value="5000" min="100" step="100"></div>
+      </div>
+      <label style="display:flex;align-items:center;gap:7px;margin-top:12px;text-transform:none;letter-spacing:0"><input type="checkbox" id="air"> <span data-i18n="air">气泵/风扇 (M8/M9)</span></label>
+      <label style="display:flex;align-items:center;gap:7px;margin-top:7px;text-transform:none;letter-spacing:0"><input type="checkbox" id="frame"> <span data-i18n="frame">加工前走边框对位</span></label>
+    </div>
+
+    <div class="sec">
+      <h2><span data-i18n="sec3">3 · 图层参数</span> <span class="tag" id="layerCount">0</span></h2>
+      <div class="hint" id="layerHint" data-i18n-html="layerHint"></div>
+      <div id="layerList"></div>
+    </div>
+
+    <div class="sec">
+      <h2><span data-i18n="sec4">4 · 材料参数预设</span> <span class="tag" id="presetCount">0</span></h2>
+      <label data-i18n="presetPick">选择预设(套用到选中层)</label>
+      <select id="presetSel"></select>
+      <div class="row" style="margin-top:9px">
+        <button class="ghost" id="applyPreset" data-i18n="applyPreset">套用到选中层</button>
+        <button class="ghost" id="openPresetMgr" data-i18n="openMgr">管理预设…</button>
+      </div>
+      <div class="hint" data-i18n="presetHint">选择后套用到当前选中层。新增/编辑/删除/导入导出请点「管理预设」。</div>
+    </div>
+
+    <div class="sec">
+      <button id="gen" disabled data-i18n="gen">生成 &amp; 优化 G-code</button>
+      <button id="dl" class="ghost" style="margin-top:9px" disabled data-i18n="dl">下载 .nc 文件</button>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="toolbar">
+      <span class="stat"><span data-i18n="st_before">空程前</span> <b id="tBefore">–</b></span>
+      <span class="stat"><span data-i18n="st_after">优化后</span> <b id="tAfter">–</b></span>
+      <span class="stat">↓ <b id="tSave" style="color:var(--accent2)">–</b></span>
+      <span class="stat"><span data-i18n="st_cut">加工长度</span> <b id="tCut">–</b></span>
+      <span class="stat"><span data-i18n="st_time">预估耗时</span> <b id="tTime">–</b></span>
+      <span class="stat"><span data-i18n="st_lines">行数</span> <b id="tLines">–</b></span>
+      <span style="flex:1"></span>
+      <div class="legend" id="legendBox">
+        <span><i class="ln" style="border-color:var(--txt)"></i><span data-i18n="lg_cut">加工</span></span>
+        <span><i class="ln" style="border-color:var(--mut);border-top-style:dashed"></i><span data-i18n="lg_travel">空程</span></span>
+      </div>
+      <div class="vtabs">
+        <button id="tabPath" class="on" data-i18n="tabPath">路径预览</button>
+        <button id="tabGcode" data-i18n="tabGcode">G-code</button>
+      </div>
+    </div>
+    <div class="canvas-wrap" id="cw"><canvas id="cv"></canvas><div class="cvhint" id="cvHint" data-i18n="canvasHint">滚轮缩放 · 拖拽平移 · 双击复位</div></div>
+    <div class="gcode" id="gcodeView" style="display:none">
+      <div class="bar"><span data-i18n="gcodeTitle">G-code 预览</span><span class="badge" id="fname" data-i18n="fnameNone">未生成</span></div>
+      <textarea id="gout" readonly spellcheck="false" data-i18n-ph="goutPh" placeholder="生成后 G-code 显示在此…"></textarea>
+    </div>
+  </div>
+</div>
+
+<div id="presetModal" class="modal-overlay" style="display:none">
+  <div class="modal">
+    <div class="modal-head">
+      <span><span data-i18n="pmTitle">材料参数预设 · 管理</span> <span class="tag" id="pmCount">0</span></span>
+      <button class="ghost" id="pmClose" data-i18n="close">关闭 ✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="pm-list" id="pmList"></div>
+      <div class="pm-form" id="pmForm"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="ghost" id="pmNewBlank" data-i18n="pmNewBlank">＋ 新建空白</button>
+      <button class="ghost" id="pmNewFromLayer" data-i18n="pmNewFromLayer">＋ 从选中层新建</button>
+      <button class="ghost" id="pmLoadBuiltin" data-i18n="pmLoadBuiltin">载入内置(40W)</button>
+      <span style="flex:1"></span>
+      <button class="ghost" id="pmExport" data-i18n="pmExport">导出 JSON</button>
+      <button class="ghost" id="pmImport" data-i18n="pmImport">导入 JSON</button>
+    </div>
+  </div>
+</div>
+<input id="impFile" type="file" accept=".json" style="display:none">
+
+<script>
+"use strict";
+// ============================================================ i18n
+const I18N={
+  zh:{
+    app:"G-code Generator", sub:"SVG → 路径模式 + 优化 → GRBL G-code · 纯本地",
+    sec1:"1 · 导入", drop:"点击或拖入 SVG 文件",
+    importDefault:"按描边颜色自动分层。支持 path/line/polyline/polygon/rect/circle/ellipse。",
+    sec2:"2 · 尺寸 & 机器", outW:"输出宽度 (mm)", origin:"原点", origin_bl:"左下角", origin_c:"居中",
+    maxS:"S 上限 ($30)", rapid:"空程 G0 (mm/min)", air:"气泵/风扇 (M8/M9)", frame:"加工前走边框对位",
+    sec3:"3 · 图层参数",
+    layerHint:'路径模式:<i class="tag">中线</i> 单线雕 · <i class="tag">描边</i> 走轮廓 · <i class="tag">填充</i> 实心 · <i class="tag">加粗</i> 单线加粗。<span class="imp">切透层 order 设最大(最后)。</span>',
+    sec4:"4 · 材料参数预设", presetNone:"— 无 —", presetPick:"选择预设(套用到选中层)",
+    applyPreset:"套用到选中层", openMgr:"管理预设…",
+    presetHint:"选择后套用到当前选中层。新增/编辑/删除/导入导出请点「管理预设」。",
+    gen:"生成 & 优化 G-code", dl:"下载 .nc 文件",
+    st_before:"空程前", st_after:"优化后", st_cut:"加工长度", st_time:"预估耗时", st_lines:"行数",
+    lg_cut:"加工", lg_travel:"空程", tabPath:"路径预览", tabGcode:"G-code",
+    computing:"计算中…", canvasHint:"滚轮缩放 · 拖拽平移 · 双击复位",
+    gcodeTitle:"G-code 预览", fnameNone:"未生成", goutPh:"生成后 G-code 显示在此…",
+    pmTitle:"材料参数预设 · 管理", close:"关闭 ✕",
+    pmNewBlank:"＋ 新建空白", pmNewFromLayer:"＋ 从选中层新建", pmLoadBuiltin:"载入内置(40W)",
+    pmExport:"导出 JSON", pmImport:"导入 JSON",
+    layers_word:"层", untitled:"未命名",
+    l_mode:"模式", l_engrave:"雕 M4", l_cut:"切 M3", l_power:"功率%", l_feed:"F", l_passes:"次数",
+    l_order:"加工顺序", l_name:"层名", l_fillParams:"填充参数", l_spacing:"间距mm", l_angle:"角度°",
+    l_outline:"走轮廓", l_thickTitle:"加粗描边(单线→实心)", l_strokeW:"笔宽",
+    l_thickOutline:"走轮廓(外框)", l_thickFill:"填充(实心)",
+    l_thickHint:"把笔宽两侧偏移成闭合带,再对带子走轮廓/填充。适合签名、单线字体加粗。",
+    l_centerHint:"中线:提取形状中轴做单线雕。闭合图形栅格细化,开放线条直接沿用。",
+    pm_centerline:"中线", pm_outline:"描边", pm_fill:"填充", pm_thicken:"加粗",
+    f_material:"材料", f_thickness:"厚度", f_effect:"效果",
+    ph_material:"如 椴木胶合板", ph_thickness:"如 3mm", ph_effect:"如 一次切透、深雕无焦边、轻描边",
+    f_listname:"列表名 = 材料 + 厚度 + 效果 = ", f_applyNote:"套用只写入 模式/功率/F/次数,不改图层的路径模式。",
+    f_delete:"删除此预设", pm_pickEdit:"选择左侧预设进行编辑<br>或点下方「新建」", pm_none:"还没有预设<br>点下方「新建」创建",
+    a_pickPreset:"选一个预设并选中一层", a_importFirst:"请先导入并选中一层",
+    a_builtinLoaded:n=>"已载入 "+n+" 条内置预设", a_builtinExists:"内置预设已存在,未重复添加",
+    a_confirmDel:l=>"删除预设「"+l+"」?", a_importOk:n=>"已导入 "+n+" 条预设", a_jsonBad:"JSON 格式不对",
+    err_notsvg:"不是有效的 SVG", err_noline:"SVG 中未找到可加工的线条",
+    imp_loaded:()=>`已载入 <b>${RAW.length}</b> 条线条,<b>${LAYERS.length}</b> 个颜色层。点层展开编辑。`,
+    imp_fail:m=>`<span class="imp">解析失败:${m}</span>`,
+    fmt:(m,s)=>m>0?`${m}分${s}秒`:`${s}秒`, layerName:i=>"层"+i
+  },
+  en:{
+    app:"G-code Generator", sub:"SVG → path modes + optimize → GRBL G-code · fully local",
+    sec1:"1 · Import", drop:"Click or drop an SVG file",
+    importDefault:"Auto-splits into layers by stroke color. Supports path/line/polyline/polygon/rect/circle/ellipse.",
+    sec2:"2 · Size & machine", outW:"Output width (mm)", origin:"Origin", origin_bl:"Bottom-left", origin_c:"Center",
+    maxS:"S max ($30)", rapid:"Rapid G0 (mm/min)", air:"Air assist / fan (M8/M9)", frame:"Trace frame before job",
+    sec3:"3 · Layers",
+    layerHint:'Path mode: <i class="tag">center</i> single-line · <i class="tag">outline</i> contour · <i class="tag">fill</i> solid · <i class="tag">bold</i> thicken. <span class="imp">Put cut-through layers last (highest order).</span>',
+    sec4:"4 · Material presets", presetNone:"— none —", presetPick:"Choose preset (apply to selected layer)",
+    applyPreset:"Apply to layer", openMgr:"Manage presets…",
+    presetHint:"Applies to the selected layer. Add / edit / delete / import / export under “Manage presets”.",
+    gen:"Generate & optimize G-code", dl:"Download .nc file",
+    st_before:"Before", st_after:"After", st_cut:"Cut length", st_time:"Est. time", st_lines:"Lines",
+    lg_cut:"cut", lg_travel:"travel", tabPath:"Path preview", tabGcode:"G-code",
+    computing:"Computing…", canvasHint:"Scroll to zoom · drag to pan · double-click to reset",
+    gcodeTitle:"G-code preview", fnameNone:"not generated", goutPh:"G-code will appear here after you generate…",
+    pmTitle:"Material presets · manager", close:"Close ✕",
+    pmNewBlank:"＋ New blank", pmNewFromLayer:"＋ New from layer", pmLoadBuiltin:"Load built-in (40W)",
+    pmExport:"Export JSON", pmImport:"Import JSON",
+    layers_word:"layers", untitled:"untitled",
+    l_mode:"Mode", l_engrave:"Engrave M4", l_cut:"Cut M3", l_power:"Power%", l_feed:"F", l_passes:"Passes",
+    l_order:"Order", l_name:"Layer name", l_fillParams:"Fill parameters", l_spacing:"Spacing mm", l_angle:"Angle°",
+    l_outline:"Outline", l_thickTitle:"Thicken → solid", l_strokeW:"Stroke",
+    l_thickOutline:"Outline (frame)", l_thickFill:"Fill (solid)",
+    l_thickHint:"Offsets the stroke width to both sides into a closed band, then outlines/fills it. Good for signatures and single-line fonts.",
+    l_centerHint:"Center: extract the medial axis for single-line engraving. Closed shapes are thinned by raster; open lines pass through.",
+    pm_centerline:"Center", pm_outline:"Outline", pm_fill:"Fill", pm_thicken:"Bold",
+    f_material:"Material", f_thickness:"Thickness", f_effect:"Effect",
+    ph_material:"e.g. birch plywood", ph_thickness:"e.g. 3mm", ph_effect:"e.g. cut through, deep engrave, light score",
+    f_listname:"List name = material + thickness + effect = ", f_applyNote:"Applying only writes mode / power / F / passes — never the layer's path mode.",
+    f_delete:"Delete this preset", pm_pickEdit:"Select a preset on the left to edit<br>or click “New” below", pm_none:"No presets yet<br>click “New” below to create one",
+    a_pickPreset:"Pick a preset and select a layer", a_importFirst:"Import and select a layer first",
+    a_builtinLoaded:n=>"Loaded "+n+" built-in presets", a_builtinExists:"Built-in presets already present, nothing added",
+    a_confirmDel:l=>"Delete preset “"+l+"”?", a_importOk:n=>"Imported "+n+" presets", a_jsonBad:"Invalid JSON",
+    err_notsvg:"Not a valid SVG", err_noline:"No machinable lines found in the SVG",
+    imp_loaded:()=>`Loaded <b>${RAW.length}</b> paths across <b>${LAYERS.length}</b> color layers. Click a layer to expand.`,
+    imp_fail:m=>`<span class="imp">Parse failed: ${m}</span>`,
+    fmt:(m,s)=>m>0?`${m}m ${s}s`:`${s}s`, layerName:i=>"Layer "+i
+  }
+};
+let LANG=localStorage.getItem("laser_lang")||"zh";
+const t=k=>{const v=I18N[LANG][k];return v==null?k:v;};
+function applyI18n(){
+  document.documentElement.lang=LANG;
+  document.title=t("app");
+  document.querySelectorAll("[data-i18n]").forEach(el=>el.textContent=t(el.dataset.i18n));
+  document.querySelectorAll("[data-i18n-html]").forEach(el=>el.innerHTML=t(el.dataset.i18nHtml));
+  document.querySelectorAll("[data-i18n-ph]").forEach(el=>el.placeholder=t(el.dataset.i18nPh));
+  document.getElementById("langBtn").textContent=LANG==="zh"?"EN":"中";
+  // dynamic bits
+  const psel=document.getElementById("presetSel");
+  if(!RAW)document.getElementById("importInfo").innerHTML=t("importDefault");
+  else document.getElementById("importInfo").innerHTML=t("imp_loaded")();
+  if(LAYERS.length)renderLayers(); else document.getElementById("layerCount").textContent="0 "+t("layers_word");
+  refreshPresetUI();
+  if(document.getElementById("presetModal").style.display!=="none")renderPresetMgr();
+}
+function setLang(l){LANG=l;localStorage.setItem("laser_lang",l);applyI18n();}
+
+// ============================================================ state
+let RAW=null, LAYERS=[], selLayer=0, LAST_GCODE="", LAST_GEOM=null;
+let PRESETS=[];
+const PKEY="laser_presets_v1";
+const PATHMODES=[["centerline","▏"],["outline","▢"],["fill","▤"],["thicken","▊"]];
+
+// ============================================================ geometry helpers
+function dist(a,b){return Math.hypot(a[0]-b[0],a[1]-b[1]);}
+function polyLen(p){let L=0;for(let i=1;i<p.length;i++)L+=dist(p[i-1],p[i]);return L;}
+function perp(a,b,c){const dx=c[0]-a[0],dy=c[1]-a[1],L=Math.hypot(dx,dy);
+  return L<1e-9?dist(a,b):Math.abs((b[0]-a[0])*dy-(b[1]-a[1])*dx)/L;}
+function simplify(pts,tol){if(pts.length<3)return pts.slice();
+  const o=[pts[0]];for(let i=1;i<pts.length-1;i++){const a=o[o.length-1];if(perp(a,pts[i],pts[i+1])>tol)o.push(pts[i]);}
+  o.push(pts[pts.length-1]);return o;}
+
+// ============================================================ SVG parse
+function parseSVG(text){
+  const doc=new DOMParser().parseFromString(text,"image/svg+xml");
+  const svg=doc.documentElement;
+  if(svg.nodeName.toLowerCase()!=="svg")throw new Error(t("err_notsvg"));
+  const holder=document.createElement("div");
+  holder.style.cssText="position:absolute;left:-99999px;top:0;width:0;height:0;overflow:hidden";
+  holder.appendChild(svg);document.body.appendChild(holder);
+  const els=svg.querySelectorAll("path,line,polyline,polygon,rect,circle,ellipse");
+  const contours=[];
+  els.forEach(el=>{
+    let total;try{total=el.getTotalLength();}catch(e){return;}
+    if(!isFinite(total)||total<=0)return;
+    const ctm=el.getCTM(),step=0.8,n=Math.max(2,Math.min(6000,Math.ceil(total/step))),pts=[];
+    for(let i=0;i<=n;i++){const p=el.getPointAtLength(total*i/n);pts.push(applyM(ctm,p.x,p.y));}
+    const tag=el.nodeName.toLowerCase();
+    let closed=["polygon","rect","circle","ellipse"].includes(tag);
+    if(tag==="path")closed=/[zZ]\s*$/.test(el.getAttribute("d")||"");
+    if(!closed&&dist(pts[0],pts[pts.length-1])<1e-4)closed=true;
+    contours.push({pts,closed,color:strokeColor(el)});
+  });
+  document.body.removeChild(holder);
+  if(!contours.length)throw new Error(t("err_noline"));
+  return contours;
+}
+function applyM(m,x,y){return m?[m.a*x+m.c*y+m.e,m.b*x+m.d*y+m.f]:[x,y];}
+function strokeColor(el){let s=el.getAttribute("stroke");
+  if(!s||s==="none"){const f=el.getAttribute("fill");s=(f&&f!=="none")?f:"#000000";}
+  return normColor(s);}
+function normColor(c){const cv=document.createElement("canvas").getContext("2d");cv.fillStyle="#000";cv.fillStyle=c;return cv.fillStyle;}
+
+// ============================================================ layers
+function buildLayers(contours){
+  const seen=new Map();
+  contours.forEach(c=>seen.set(c.color,(seen.get(c.color)||0)+1));
+  LAYERS=[...seen.keys()].map((color,i)=>({
+    color,name:t("layerName")(i+1),mode:"engrave",power:30,feed:3000,passes:1,order:i+1,enabled:true,count:seen.get(color),
+    pathMode:"outline",fillSpacing:0.15,fillAngle:45,fillOutline:true,
+    strokeW:1.5,thickenOutline:true,thickenFill:true
+  }));
+  selLayer=0;renderLayers();
+}
+function renderLayers(){
+  const host=document.getElementById("layerList");host.innerHTML="";
+  document.getElementById("layerCount").textContent=LAYERS.length+" "+t("layers_word");
+  LAYERS.forEach((L,idx)=>{
+    const card=document.createElement("div");
+    card.className="lcard"+(idx===selLayer?" sel":"");
+    const segBtns=PATHMODES.map(m=>`<button data-i="${idx}" data-pm="${m[0]}" class="${L.pathMode===m[0]?"on":""}" title="${t("pm_"+m[0])}">${m[1]}</button>`).join("");
+    let body="";
+    if(idx===selLayer){
+      body=`<div class="lbody">
+        <div class="grid4">
+          <div><label>${t("l_mode")}</label><select data-i="${idx}" data-k="mode">
+            <option value="engrave" ${L.mode==="engrave"?"selected":""}>${t("l_engrave")}</option>
+            <option value="cut" ${L.mode==="cut"?"selected":""}>${t("l_cut")}</option></select></div>
+          <div><label>${t("l_power")}</label><input type="number" value="${L.power}" min="0" max="100" data-i="${idx}" data-k="power"></div>
+          <div><label>${t("l_feed")}</label><input type="number" value="${L.feed}" min="1" step="100" data-i="${idx}" data-k="feed"></div>
+          <div><label>${t("l_passes")}</label><input type="number" value="${L.passes}" min="1" data-i="${idx}" data-k="passes"></div>
+        </div>
+        <div class="grid2" style="margin-top:8px">
+          <div><label>${t("l_order")}</label><input type="number" value="${L.order}" min="1" data-i="${idx}" data-k="order"></div>
+          <div><label>${t("l_name")}</label><input type="text" value="${esc(L.name)}" data-i="${idx}" data-k="name"></div>
+        </div>
+        ${L.pathMode==="fill"?`
+        <div class="fillbox">
+          <div style="font-size:11px;color:var(--mut);margin-bottom:8px">${t("l_fillParams")}</div>
+          <div class="grid2">
+            <div><label>${t("l_spacing")}</label><input type="number" step="0.01" value="${L.fillSpacing}" data-i="${idx}" data-k="fillSpacing"></div>
+            <div><label>${t("l_angle")}</label><input type="number" value="${L.fillAngle}" data-i="${idx}" data-k="fillAngle"></div>
+          </div>
+          <label style="display:flex;align-items:center;gap:6px;margin:9px 0 0;text-transform:none;letter-spacing:0"><input type="checkbox" ${L.fillOutline?"checked":""} data-i="${idx}" data-k="fillOutline">${t("l_outline")}</label>
+        </div>`:""}
+        ${L.pathMode==="thicken"?`
+        <div class="fillbox">
+          <div style="font-size:11px;color:var(--mut);margin-bottom:8px;display:flex;justify-content:space-between;gap:6px 10px;flex-wrap:wrap">
+            <span>${t("l_thickTitle")}</span><span style="white-space:nowrap">${t("l_strokeW")} <b id="strokeWVal" style="color:var(--txt)">${L.strokeW.toFixed(1)}</b> mm</span></div>
+          <input type="range" id="strokeWSlider" min="0.5" max="4" step="0.1" value="${L.strokeW}" data-i="${idx}" style="width:100%;padding:0">
+          <div class="grid2" style="margin-top:10px">
+            <label style="display:flex;align-items:center;gap:5px;margin:0;text-transform:none;letter-spacing:0"><input type="checkbox" ${L.thickenOutline?"checked":""} data-i="${idx}" data-k="thickenOutline">${t("l_thickOutline")}</label>
+            <label style="display:flex;align-items:center;gap:5px;margin:0;text-transform:none;letter-spacing:0"><input type="checkbox" ${L.thickenFill?"checked":""} data-i="${idx}" data-k="thickenFill">${t("l_thickFill")}</label>
+          </div>
+          ${L.thickenFill?`
+          <div class="grid2" style="margin-top:10px">
+            <div><label>${t("l_spacing")}</label><input type="number" step="0.01" value="${L.fillSpacing}" data-i="${idx}" data-k="fillSpacing"></div>
+            <div><label>${t("l_angle")}</label><input type="number" value="${L.fillAngle}" data-i="${idx}" data-k="fillAngle"></div>
+          </div>`:""}
+          <div class="hint">${t("l_thickHint")}</div>
+        </div>`:""}
+        ${L.pathMode==="centerline"?`<div class="hint">${t("l_centerHint")}</div>`:""}
+      </div>`;
+    }
+    card.innerHTML=`
+      <div class="lhead" data-sel="${idx}">
+        <input type="checkbox" ${L.enabled?"checked":""} data-i="${idx}" data-k="enabled" onclick="event.stopPropagation()">
+        <span style="font-size:12px"><span class="sw" style="background:${L.color}"></span> ${L.count}</span>
+        <span class="seg">${segBtns}</span>
+        <span class="obadge">#${L.order}</span>
+        <span class="chev">${idx===selLayer?"▾":"▸"}</span>
+      </div>${body}`;
+    host.appendChild(card);
+  });
+  host.querySelectorAll(".lhead").forEach(h=>{
+    h.addEventListener("click",e=>{selLayer=+h.dataset.sel;renderLayers();});
+    h.addEventListener("mouseenter",()=>{HILITE=LAYERS[+h.dataset.sel].color;if(LAST_GEOM)drawPreview();});
+    h.addEventListener("mouseleave",()=>{HILITE=null;if(LAST_GEOM)drawPreview();});
+  });
+  host.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click",e=>{
+    e.stopPropagation();LAYERS[+b.dataset.i].pathMode=b.dataset.pm;selLayer=+b.dataset.i;renderLayers();scheduleRun();}));
+  host.querySelectorAll("[data-k]").forEach(el=>el.addEventListener("change",e=>{
+    const i=+e.target.dataset.i,k=e.target.dataset.k;
+    let v=e.target.type==="checkbox"?e.target.checked:
+      (["power","feed","passes","order","fillSpacing","fillAngle","strokeW"].includes(k)?+e.target.value:e.target.value);
+    LAYERS[i][k]=v;
+    if(k==="mode"){if(v==="cut"){LAYERS[i].power=90;LAYERS[i].feed=1000;}else{LAYERS[i].power=30;LAYERS[i].feed=3000;}renderLayers();}
+    if(k==="thickenFill")renderLayers();
+    scheduleRun();
+  }));
+  const sl=host.querySelector("#strokeWSlider");
+  if(sl){
+    sl.addEventListener("input",e=>{const v=(+e.target.value).toFixed(1);const lab=document.getElementById("strokeWVal");if(lab)lab.textContent=v;});
+    sl.addEventListener("change",e=>{LAYERS[+e.target.dataset.i].strokeW=+e.target.value;scheduleRun();});
+  }
+}
+
+// ============================================================ scale to mm, y-up
+function toMM(contours){
+  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+  contours.forEach(c=>c.pts.forEach(p=>{minX=Math.min(minX,p[0]);minY=Math.min(minY,p[1]);maxX=Math.max(maxX,p[0]);maxY=Math.max(maxY,p[1]);}));
+  const w=maxX-minX,h=maxY-minY,outW=+document.getElementById("outW").value||100;
+  const s=w>1e-9?outW/w:1,outH=h*s,om=document.getElementById("origin").value;
+  const ox=om==="center"?-outW/2:0,oy=om==="center"?-outH/2:0,out=[];
+  contours.forEach(c=>{let pts=c.pts.map(p=>[(p[0]-minX)*s+ox,(maxY-p[1])*s+oy]);pts=simplify(pts,0.03);
+    if(pts.length>=2)out.push({pts,closed:c.closed,color:c.color});});
+  return {contours:out,bbox:{minX:ox,minY:oy,maxX:ox+outW,maxY:oy+outH}};
+}
+
+// ============================================================ hatch fill
+function hatchFill(polys,spacing,angleDeg){
+  if(!polys.length)return [];
+  spacing=Math.max(0.03,spacing);
+  const a=angleDeg*Math.PI/180,ca=Math.cos(a),sa=Math.sin(a);
+  const rot=p=>[p[0]*ca+p[1]*sa,-p[0]*sa+p[1]*ca],inv=p=>[p[0]*ca-p[1]*sa,p[0]*sa+p[1]*ca];
+  const edges=[];let minY=1e9,maxY=-1e9;
+  polys.forEach(c=>{const P=c.pts.map(rot);if(dist(P[0],P[P.length-1])>1e-6)P.push(P[0]);
+    for(let i=0;i<P.length-1;i++)edges.push([P[i],P[i+1]]);
+    P.forEach(p=>{minY=Math.min(minY,p[1]);maxY=Math.max(maxY,p[1]);});});
+  const segs=[];let ln=0;
+  for(let y=minY+spacing/2;y<maxY;y+=spacing,ln++){
+    const xs=[];
+    for(const [A,B] of edges){if((A[1]<=y&&B[1]>y)||(B[1]<=y&&A[1]>y)){const t2=(y-A[1])/(B[1]-A[1]);xs.push(A[0]+t2*(B[0]-A[0]));}}
+    xs.sort((m,n)=>m-n);
+    const row=[];
+    for(let i=0;i+1<xs.length;i+=2){if(xs[i+1]-xs[i]<1e-6)continue;row.push([inv([xs[i],y]),inv([xs[i+1],y])]);}
+    row.forEach(s=>segs.push({pts:s,closed:false}));
+  }
+  return segs;
+}
+
+// ============================================================ thicken (stroke-to-outline)
+function strokeToOutline(pts,halfW){
+  const n=pts.length;if(n<2)return null;
+  const segN=[];
+  for(let i=0;i<n-1;i++){const dx=pts[i+1][0]-pts[i][0],dy=pts[i+1][1]-pts[i][1],L=Math.hypot(dx,dy)||1;segN.push([-dy/L,dx/L]);}
+  const vN=[],sc=[];
+  for(let i=0;i<n;i++){let nx,ny,s=1;
+    if(i===0){[nx,ny]=segN[0];}
+    else if(i===n-1){[nx,ny]=segN[n-2];}
+    else{const a=segN[i-1],b=segN[i];let mx=a[0]+b[0],my=a[1]+b[1];const ml=Math.hypot(mx,my);
+      if(ml<1e-6){nx=a[0];ny=a[1];}else{mx/=ml;my/=ml;const d=mx*a[0]+my*a[1];s=1/Math.max(0.25,d);nx=mx;ny=my;}}
+    vN.push([nx,ny]);sc.push(s);}
+  const left=[],right=[];
+  for(let i=0;i<n;i++){const o=halfW*sc[i];
+    left.push([pts[i][0]+vN[i][0]*o,pts[i][1]+vN[i][1]*o]);
+    right.push([pts[i][0]-vN[i][0]*o,pts[i][1]-vN[i][1]*o]);}
+  return left.concat(right.reverse());
+}
+
+// ============================================================ centerline (raster thinning)
+function centerline(contours){
+  const open=contours.filter(c=>!c.closed).map(c=>({pts:c.pts.slice(),closed:false}));
+  const closed=contours.filter(c=>c.closed);
+  if(!closed.length)return open;
+  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
+  closed.forEach(c=>c.pts.forEach(p=>{minX=Math.min(minX,p[0]);minY=Math.min(minY,p[1]);maxX=Math.max(maxX,p[0]);maxY=Math.max(maxY,p[1]);}));
+  const Wmm=maxX-minX,Hmm=maxY-minY,side=Math.max(Wmm,Hmm,1);
+  const ppm=Math.max(2,Math.min(12,300/side)),pad=2;
+  const W=Math.ceil(Wmm*ppm)+pad*2,H=Math.ceil(Hmm*ppm)+pad*2;
+  const g=new Uint8Array(W*H);
+  const toPx=p=>[(p[0]-minX)*ppm+pad,(p[1]-minY)*ppm+pad];
+  const edges=[];
+  closed.forEach(c=>{const P=c.pts.map(toPx);if(dist(P[0],P[P.length-1])>1e-6)P.push(P[0]);
+    for(let i=0;i<P.length-1;i++)edges.push([P[i],P[i+1]]);});
+  for(let y=0;y<H;y++){const yc=y+0.5,xs=[];
+    for(const [A,B] of edges){if((A[1]<=yc&&B[1]>yc)||(B[1]<=yc&&A[1]>yc)){const t2=(yc-A[1])/(B[1]-A[1]);xs.push(A[0]+t2*(B[0]-A[0]));}}
+    xs.sort((m,n)=>m-n);
+    for(let i=0;i+1<xs.length;i+=2){const x0=Math.round(xs[i]),x1=Math.round(xs[i+1]);
+      for(let x=Math.max(0,x0);x<=Math.min(W-1,x1);x++)g[y*W+x]=1;}}
+  thin(g,W,H);
+  const lines=trace(g,W,H).map(chain=>({pts:simplify(chain.map(([x,y])=>[(x-pad)/ppm+minX,(y-pad)/ppm+minY]),0.05),closed:false}))
+    .filter(l=>l.pts.length>=2);
+  return open.concat(lines);
+}
+function thin(g,W,H){
+  const idx=(x,y)=>y*W+x;
+  const nb=(x,y)=>[g[idx(x,y-1)],g[idx(x+1,y-1)],g[idx(x+1,y)],g[idx(x+1,y+1)],g[idx(x,y+1)],g[idx(x-1,y+1)],g[idx(x-1,y)],g[idx(x-1,y-1)]];
+  function pass(step){const del=[];
+    for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++){if(!g[idx(x,y)])continue;
+      const p=nb(x,y),B=p.reduce((s,v)=>s+v,0);if(B<2||B>6)continue;
+      let A=0;for(let i=0;i<8;i++)if(p[i]===0&&p[(i+1)%8]===1)A++;if(A!==1)continue;
+      const[p2,p3,p4,p5,p6,p7,p8,p9]=p;
+      if(step===0){if(p2*p4*p6!==0)continue;if(p4*p6*p8!==0)continue;}
+      else{if(p2*p4*p8!==0)continue;if(p2*p6*p8!==0)continue;}
+      del.push(idx(x,y));}
+    del.forEach(i=>g[i]=0);return del.length;}
+  let guard=0,changed=true;
+  while(changed&&guard++<600){changed=(pass(0)+pass(1))>0;}
+}
+function trace(g,W,H){
+  const idx=(x,y)=>y*W+x,vis=new Uint8Array(W*H),dirs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]];
+  const nbr=(x,y)=>{const r=[];for(const[dx,dy]of dirs){const nx=x+dx,ny=y+dy;if(nx>=0&&ny>=0&&nx<W&&ny<H&&g[idx(nx,ny)])r.push([nx,ny]);}return r;};
+  const deg=(x,y)=>nbr(x,y).length,chains=[];
+  const starts=[];
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(g[idx(x,y)]&&deg(x,y)!==2)starts.push([x,y]);
+  function walk(sx,sy){
+    if(vis[idx(sx,sy)])return;const chain=[[sx,sy]];vis[idx(sx,sy)]=1;let cx=sx,cy=sy;
+    while(true){let nx=null;for(const[a,b]of nbr(cx,cy))if(!vis[idx(a,b)]){nx=[a,b];break;}
+      if(!nx)break;vis[idx(nx[0],nx[1])]=1;chain.push(nx);cx=nx[0];cy=nx[1];}
+    if(chain.length>=2)chains.push(chain);
+  }
+  starts.forEach(([x,y])=>walk(x,y));
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(g[idx(x,y)]&&!vis[idx(x,y)])walk(x,y);
+  return chains;
+}
+
+// ============================================================ process layer
+function processLayer(L,cs){
+  if(L.pathMode==="outline")return cs.map(c=>({pts:c.pts,closed:c.closed}));
+  if(L.pathMode==="centerline")return centerline(cs);
+  if(L.pathMode==="thicken"){
+    const hw=Math.max(0.05,(L.strokeW||1.5)/2),out=[];
+    const doFill=L.thickenFill,doOutline=L.thickenOutline||!doFill;
+    cs.forEach(c=>{
+      const rib=strokeToOutline(c.pts,hw);if(!rib)return;
+      if(doFill)hatchFill([{pts:rib,closed:true}],L.fillSpacing,L.fillAngle).forEach(s=>out.push(s));
+      if(doOutline)out.push({pts:rib.concat([rib[0]]),closed:true});
+    });
+    return out;
+  }
+  const closed=cs.filter(c=>c.closed);
+  let out=hatchFill(closed,L.fillSpacing,L.fillAngle);
+  if(L.fillOutline)out=out.concat(cs.map(c=>({pts:c.pts,closed:c.closed})));
+  cs.filter(c=>!c.closed).forEach(c=>out.push({pts:c.pts,closed:false}));
+  return out;
+}
+
+// ============================================================ optimizer
+function entryCandidates(c){
+  if(!c.closed)return[{entry:c.pts[0],exitPt:c.pts[c.pts.length-1],rev:false},{entry:c.pts[c.pts.length-1],exitPt:c.pts[0],rev:true}];
+  const pts=c.pts,N=pts.length,step=Math.max(1,Math.floor(N/48)),cand=[];
+  for(let i=0;i<N;i+=step)cand.push({entry:pts[i],exitPt:pts[i],idx:i});return cand;
+}
+function nearestEntry(c,from){let b=null,bd=1e18;for(const k of entryCandidates(c)){const d=dist(from,k.entry);if(d<bd){bd=d;b=k;}}return{cand:b,d:bd};}
+function routeTravel(order,start){let cur=start,T=0;for(const c of order){const ne=nearestEntry(c,cur);T+=ne.d;cur=ne.cand.exitPt;}return T;}
+function nearestNeighbor(cs,start){const r=cs.slice(),o=[];let cur=start;
+  while(r.length){let bi=0,bd=1e18;for(let i=0;i<r.length;i++){const d=nearestEntry(r[i],cur).d;if(d<bd){bd=d;bi=i;}}
+    const c=r.splice(bi,1)[0];o.push(c);cur=nearestEntry(c,cur).cand.exitPt;}return o;}
+function twoOpt(order,start,ms){let best=order.slice(),bestT=routeTravel(best,start);const t0=performance.now();let imp=true;
+  while(imp){imp=false;for(let i=0;i<best.length-1;i++)for(let k=i+1;k<best.length;k++){
+    if(performance.now()-t0>ms)return{order:best,T:bestT};
+    const cand=best.slice(0,i).concat(best.slice(i,k+1).reverse(),best.slice(k+1));const T=routeTravel(cand,start);
+    if(T<bestT-1e-6){best=cand;bestT=T;imp=true;}}}return{order:best,T:bestT};}
+
+// ============================================================ generate
+function f3(v){return v.toFixed(3);}
+function powToS(pct,maxS){return Math.round(Math.max(0,Math.min(100,pct))/100*maxS);}
+function generate(){
+  if(!RAW)return;
+  const maxS=+document.getElementById("maxS").value,rapid=+document.getElementById("rapid").value||5000;
+  const air=document.getElementById("air").checked,frame=document.getElementById("frame").checked,start=[0,0];
+  const geo=toMM(RAW),bbox=geo.bbox;
+  const active=LAYERS.filter(L=>L.enabled).slice().sort((a,b)=>a.order-b.order);
+  const g=["; Generated by LaserGRBL G-code Generator (Fono)","; "+new Date().toISOString(),"G21 ; mm","G90 ; absolute","G17"];
+  if(air)g.push("M8 ; air on");
+  if(frame){g.push("; --- framing ---");
+    g.push(`G0 X${f3(bbox.minX)} Y${f3(bbox.minY)} S0`);g.push(`G0 X${f3(bbox.maxX)} Y${f3(bbox.minY)}`);
+    g.push(`G0 X${f3(bbox.maxX)} Y${f3(bbox.maxY)}`);g.push(`G0 X${f3(bbox.minX)} Y${f3(bbox.maxY)}`);g.push(`G0 X${f3(bbox.minX)} Y${f3(bbox.minY)}`);}
+  let tBefore=0,tAfter=0,cutLen=0,cutTime=0,travelTime=0;const previewLayers=[];let head=start.slice();
+  active.forEach(L=>{
+    const cs=geo.contours.filter(c=>c.color===L.color);if(!cs.length)return;
+    let eps=processLayer(L,cs);if(!eps.length)return;
+    tBefore+=routeTravel(eps,head);
+    const opt=twoOpt(nearestNeighbor(eps,head),head,400);const ordered=opt.order;
+    g.push(`; ===== ${L.name} · ${L.pathMode} · ${L.mode==="cut"?"CUT M3":"ENGRAVE M4"} · order ${L.order} =====`);
+    const S=powToS(L.power,maxS),F=L.feed,modeCmd=L.mode==="cut"?"M3":"M4";g.push(modeCmd);
+    ordered.forEach(c=>{
+      const ne=nearestEntry(c,head),cand=ne.cand;let pts;
+      if(c.closed){const i=cand.idx||0;pts=c.pts.slice(i).concat(c.pts.slice(1,i+1));}
+      else pts=cand.rev?c.pts.slice().reverse():c.pts.slice();
+      tAfter+=dist(head,pts[0]);travelTime+=dist(head,pts[0])/rapid;
+      for(let pass=0;pass<L.passes;pass++){
+        g.push(`G0 X${f3(pts[0][0])} Y${f3(pts[0][1])} S0`);
+        for(let i=1;i<pts.length;i++)g.push(`G1 X${f3(pts[i][0])} Y${f3(pts[i][1])} S${S} F${F}`);
+        const pl=polyLen(pts);cutLen+=pl;cutTime+=pl/F;}
+      head=pts[pts.length-1];
+    });
+    g.push("M5");previewLayers.push({color:L.color,contours:ordered});
+  });
+  if(air)g.push("M9 ; air off");g.push("M5");g.push("G0 X0.000 Y0.000 ; home");
+  LAST_GCODE=g.join("\n");LAST_GEOM={layers:previewLayers,start,bbox};
+  const total=cutTime+travelTime;
+  setStat("tBefore",tBefore.toFixed(0)+" mm");setStat("tAfter",tAfter.toFixed(0)+" mm");
+  setStat("tSave",(tBefore>1?100*(tBefore-tAfter)/tBefore:0).toFixed(0)+"%");
+  setStat("tCut",cutLen.toFixed(0)+" mm");setStat("tTime",fmtTime(total));setStat("tLines",g.length);
+  document.getElementById("gout").value=LAST_GCODE;document.getElementById("fname").textContent="output.nc";
+  document.getElementById("dl").disabled=false;drawPreview();
+}
+function setStat(id,v){document.getElementById(id).textContent=v;}
+function fmtTime(min){const s=Math.round(min*60),m=Math.floor(s/60),ss=s%60;return t("fmt")(m,ss);}
+
+// ============================================================ preview (zoom/pan + grid + hover-dim)
+let VIEW={k:1,tx:0,ty:0}, HILITE=null, BASE=null;
+function resetView(){VIEW={k:1,tx:0,ty:0};drawPreview();}
+function drawGrid(ctx,bb,TX,TY){
+  const pxmm=BASE.fit*VIEW.k, steps=[1,2,5,10,20,50,100,200];
+  let step=200;for(const s of steps){if(s*pxmm>=24){step=s;break;}}
+  ctx.strokeStyle="#c7c9bc";ctx.lineWidth=1;ctx.beginPath();
+  for(let x=Math.ceil(bb.minX/step)*step;x<=bb.maxX+1e-6;x+=step){ctx.moveTo(TX(x),TY(bb.minY));ctx.lineTo(TX(x),TY(bb.maxY));}
+  for(let y=Math.ceil(bb.minY/step)*step;y<=bb.maxY+1e-6;y+=step){ctx.moveTo(TX(bb.minX),TY(y));ctx.lineTo(TX(bb.maxX),TY(y));}
+  ctx.stroke();
+  ctx.strokeStyle="#8b8d80";ctx.lineWidth=1;ctx.beginPath();
+  ctx.moveTo(TX(bb.minX),TY(bb.minY));ctx.lineTo(TX(bb.maxX),TY(bb.minY));
+  ctx.lineTo(TX(bb.maxX),TY(bb.maxY));ctx.lineTo(TX(bb.minX),TY(bb.maxY));ctx.closePath();ctx.stroke();
+}
+function drawPreview(){
+  const cw=document.getElementById("cw"),cv=document.getElementById("cv");
+  const W=cw.clientWidth,H=cw.clientHeight;if(!W||!H)return;
+  const dpr=window.devicePixelRatio||1;
+  cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+"px";cv.style.height=H+"px";
+  const ctx=cv.getContext("2d");ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,W,H);
+  if(!LAST_GEOM)return;
+  const bb=LAST_GEOM.bbox,pad=44,gw=bb.maxX-bb.minX,gh=bb.maxY-bb.minY;
+  const fit=Math.min((W-2*pad)/gw,(H-2*pad)/gh),offX=(W-gw*fit)/2,offY=(H-gh*fit)/2;
+  BASE={fit};
+  const bx=x=>offX+(x-bb.minX)*fit, by=y=>H-(offY+(y-bb.minY)*fit);
+  const TX=x=>VIEW.k*bx(x)+VIEW.tx, TY=y=>VIEW.k*by(y)+VIEW.ty;
+  drawGrid(ctx,bb,TX,TY);
+  ctx.strokeStyle="#8b8d80";ctx.lineWidth=1;ctx.setLineDash([4,4]);let head=LAST_GEOM.start.slice();ctx.beginPath();
+  LAST_GEOM.layers.forEach(L=>L.contours.forEach(c=>{
+    const ne=nearestEntry(c,head);let pts;
+    if(c.closed){const i=ne.cand.idx||0;pts=c.pts.slice(i).concat(c.pts.slice(1,i+1));}else pts=ne.cand.rev?c.pts.slice().reverse():c.pts.slice();
+    ctx.moveTo(TX(head[0]),TY(head[1]));ctx.lineTo(TX(pts[0][0]),TY(pts[0][1]));head=pts[pts.length-1];}));
+  ctx.stroke();ctx.setLineDash([]);
+  LAST_GEOM.layers.forEach(L=>{
+    const dim=HILITE&&L.color!==HILITE;
+    ctx.strokeStyle=dim?"#c7c9bc":(L.color==="#000000"?"#191a15":L.color);
+    ctx.lineWidth=dim?0.8:1.6;
+    L.contours.forEach(c=>{ctx.beginPath();c.pts.forEach((p,i)=>i?ctx.lineTo(TX(p[0]),TY(p[1])):ctx.moveTo(TX(p[0]),TY(p[1])));ctx.stroke();});});
+  ctx.fillStyle="#191a15";ctx.beginPath();ctx.arc(TX(LAST_GEOM.start[0]),TY(LAST_GEOM.start[1]),4,0,7);ctx.fill();
+}
+window.addEventListener("resize",drawPreview);
+(function(){
+  const cw=document.getElementById("cw");
+  cw.addEventListener("wheel",e=>{e.preventDefault();if(!LAST_GEOM)return;
+    const r=cw.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;
+    const f=e.deltaY<0?1.12:1/1.12,nk=Math.max(0.2,Math.min(50,VIEW.k*f));
+    VIEW.tx=mx-nk*(mx-VIEW.tx)/VIEW.k;VIEW.ty=my-nk*(my-VIEW.ty)/VIEW.k;VIEW.k=nk;drawPreview();
+  },{passive:false});
+  let drag=null;
+  cw.addEventListener("mousedown",e=>{drag={x:e.clientX,y:e.clientY,tx:VIEW.tx,ty:VIEW.ty};cw.style.cursor="grabbing";});
+  window.addEventListener("mousemove",e=>{if(!drag)return;VIEW.tx=drag.tx+(e.clientX-drag.x);VIEW.ty=drag.ty+(e.clientY-drag.y);drawPreview();});
+  window.addEventListener("mouseup",()=>{if(drag){drag=null;cw.style.cursor="";}});
+  cw.addEventListener("dblclick",resetView);
+})();
+
+// ============================================================ auto-recompute (debounced)
+let runTimer=null;
+function scheduleRun(){
+  if(!RAW)return;
+  const b=document.getElementById("gen");b.disabled=false;b.textContent=t("computing");
+  clearTimeout(runTimer);
+  runTimer=setTimeout(()=>requestAnimationFrame(()=>{generate();document.getElementById("gen").textContent=t("gen");}),220);
+}
+
+// ============================================================ presets
+const PFIELDS=["mode","power","feed","passes"];
+const presetLabel=p=>[p.material,p.thickness,p.effect].filter(Boolean).join(" ")||t("untitled");
+const BUILTIN={
+  zh:[
+    {material:"厚卡纸 300g",thickness:"0.3mm",effect:"一次切透 · 必开气泵防燃",mode:"cut",power:45,feed:350,passes:1},
+    {material:"厚卡纸 300g",thickness:"0.3mm",effect:"压折痕不切透 · 便于折叠",mode:"engrave",power:12,feed:1800,passes:1},
+    {material:"白画布 棉",thickness:"布",effect:"浅褐图案雕刻 · 不烧穿",mode:"engrave",power:18,feed:3000,passes:1},
+    {material:"白画布 棉",thickness:"布",effect:"裁断布料 · 开气泵防燃边",mode:"cut",power:35,feed:600,passes:1},
+    {material:"椴木胶合板",thickness:"2mm",effect:"一次切透 · 底面轻焦",mode:"cut",power:100,feed:300,passes:2},
+    {material:"椴木胶合板",thickness:"3mm",effect:"切透 · 3遍稳",mode:"cut",power:100,feed:220,passes:3},
+    {material:"椴木胶合板",thickness:"4mm",effect:"切透 · 边缘微焦",mode:"cut",power:100,feed:180,passes:4},
+    {material:"椴木胶合板",thickness:"5mm",effect:"切透 · 需慢速多遍",mode:"cut",power:100,feed:150,passes:5},
+    {material:"椴木胶合板",thickness:"6mm",effect:"极限切透 · 焦边明显",mode:"cut",power:100,feed:130,passes:6},
+    {material:"椴木胶合板",thickness:"3mm",effect:"表面深棕线条雕",mode:"engrave",power:30,feed:3000,passes:1}
+  ],
+  en:[
+    {material:"Cardstock 300g",thickness:"0.3mm",effect:"cut through · air assist required",mode:"cut",power:45,feed:350,passes:1},
+    {material:"Cardstock 300g",thickness:"0.3mm",effect:"score fold line · no cut",mode:"engrave",power:12,feed:1800,passes:1},
+    {material:"Cotton canvas",thickness:"fabric",effect:"tan pattern engrave · no burn-through",mode:"engrave",power:18,feed:3000,passes:1},
+    {material:"Cotton canvas",thickness:"fabric",effect:"cut fabric · air assist",mode:"cut",power:35,feed:600,passes:1},
+    {material:"Birch plywood",thickness:"2mm",effect:"cut through · light back char",mode:"cut",power:100,feed:300,passes:2},
+    {material:"Birch plywood",thickness:"3mm",effect:"cut through · 3 passes",mode:"cut",power:100,feed:220,passes:3},
+    {material:"Birch plywood",thickness:"4mm",effect:"cut through · slight edge char",mode:"cut",power:100,feed:180,passes:4},
+    {material:"Birch plywood",thickness:"5mm",effect:"cut through · slow, multi-pass",mode:"cut",power:100,feed:150,passes:5},
+    {material:"Birch plywood",thickness:"6mm",effect:"limit cut · visible char",mode:"cut",power:100,feed:130,passes:6},
+    {material:"Birch plywood",thickness:"3mm",effect:"deep brown line engrave",mode:"engrave",power:30,feed:3000,passes:1}
+  ]
+};
+function loadPresets(){
+  const raw=localStorage.getItem(PKEY);
+  if(raw===null){PRESETS=JSON.parse(JSON.stringify(BUILTIN[LANG]));persist();}
+  else{try{PRESETS=JSON.parse(raw)||[];}catch(e){PRESETS=[];}}
+  PRESETS.forEach(p=>{if(p.thickness===undefined){p.material=p.material||p.name||"";p.thickness="";delete p.name;}if(p.effect===undefined)p.effect="";});
+  refreshPresetUI();
+}
+function persist(){try{localStorage.setItem(PKEY,JSON.stringify(PRESETS));}catch(e){}}
+function refreshPresetUI(){
+  const sel=document.getElementById("presetSel");sel.innerHTML=`<option value="">${t("presetNone")}</option>`;
+  PRESETS.forEach((p,i)=>{const o=document.createElement("option");o.value=i;o.textContent=presetLabel(p);sel.appendChild(o);});
+  document.getElementById("presetCount").textContent=PRESETS.length;
+}
+function applyPreset(){
+  const i=document.getElementById("presetSel").value;if(i===""||!LAYERS[selLayer]){alert(t("a_pickPreset"));return;}
+  const p=PRESETS[+i];PFIELDS.forEach(f=>{if(f in p)LAYERS[selLayer][f]=p[f];});renderLayers();scheduleRun();
+}
+const PDEF={material:"",thickness:"",effect:"",mode:"engrave",power:30,feed:3000,passes:1};
+let pmSel=-1;
+const esc=s=>String(s==null?"":s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+function openPresetMgr(){pmSel=PRESETS.length?0:-1;renderPresetMgr();document.getElementById("presetModal").style.display="flex";}
+function closePresetMgr(){document.getElementById("presetModal").style.display="none";}
+function pmNewBlank(){PRESETS.push(Object.assign({},PDEF));pmSel=PRESETS.length-1;persist();renderPresetMgr();}
+function pmLoadBuiltin(){
+  const key=p=>p.material+"|"+p.thickness+"|"+p.effect;
+  const have=new Set(PRESETS.map(key));let n=0;
+  BUILTIN[LANG].forEach(b=>{if(!have.has(key(b))){PRESETS.push(Object.assign({},b));n++;}});
+  persist();renderPresetMgr();alert(n?t("a_builtinLoaded")(n):t("a_builtinExists"));
+}
+function pmNewFromLayer(){
+  if(!LAYERS[selLayer]){alert(t("a_importFirst"));return;}
+  const L=LAYERS[selLayer],p={material:"",thickness:""};PFIELDS.forEach(f=>p[f]=L[f]);
+  PRESETS.push(p);pmSel=PRESETS.length-1;persist();renderPresetMgr();
+}
+function buildPmForm(p,i){
+  return `<div class="grid2">
+      <div><label>${t("f_material")}</label><input data-pk="material" placeholder="${esc(t("ph_material"))}" value="${esc(p.material)}"></div>
+      <div><label>${t("f_thickness")}</label><input data-pk="thickness" placeholder="${esc(t("ph_thickness"))}" value="${esc(p.thickness)}"></div>
+    </div>
+    <div style="margin-top:8px"><label>${t("f_effect")}</label><input data-pk="effect" placeholder="${esc(t("ph_effect"))}" value="${esc(p.effect)}"></div>
+    <div class="hint" style="margin-top:6px">${t("f_listname")}<b style="color:var(--txt)">${esc(presetLabel(p))}</b></div>
+    <div class="grid4" style="margin-top:10px">
+      <div><label>${t("l_mode")}</label><select data-pk="mode">
+        <option value="engrave" ${p.mode==="engrave"?"selected":""}>${t("l_engrave")}</option>
+        <option value="cut" ${p.mode==="cut"?"selected":""}>${t("l_cut")}</option></select></div>
+      <div><label>${t("l_power")}</label><input type="number" data-pk="power" value="${p.power}"></div>
+      <div><label>${t("l_feed")}</label><input type="number" data-pk="feed" value="${p.feed}"></div>
+      <div><label>${t("l_passes")}</label><input type="number" data-pk="passes" value="${p.passes}"></div>
+    </div>
+    <div class="hint" style="margin-top:8px">${t("f_applyNote")}</div>
+    <div style="margin-top:14px"><button class="ghost" data-pmdel="${i}" style="background:transparent;border-color:var(--danger);color:var(--danger)">${t("f_delete")}</button></div>`;
+}
+function onPmField(e){
+  if(pmSel<0)return;const k=e.target.dataset.pk;
+  const v=e.target.type==="checkbox"?e.target.checked:
+    (["power","feed","passes"].includes(k)?+e.target.value:e.target.value);
+  PRESETS[pmSel][k]=v;persist();
+  if(["material","thickness","effect"].includes(k))renderPresetMgr();else refreshPresetUI();
+}
+function renderPresetMgr(){
+  refreshPresetUI();
+  document.getElementById("pmCount").textContent=PRESETS.length;
+  const list=document.getElementById("pmList"),form=document.getElementById("pmForm");
+  list.innerHTML=PRESETS.length?PRESETS.map((p,i)=>`<div class="pm-item${i===pmSel?" sel":""}" data-pmi="${i}">
+    <div class="nm">${esc(presetLabel(p))}</div><div class="mt">${p.mode==="cut"?t("l_cut"):t("l_engrave")} ${p.power}% · F${p.feed} · ×${p.passes}</div></div>`).join("")
+    :`<div class="pm-empty">${t("pm_none")}</div>`;
+  form.innerHTML=(pmSel>=0&&PRESETS[pmSel])?buildPmForm(PRESETS[pmSel],pmSel):`<div class="pm-empty">${t("pm_pickEdit")}</div>`;
+  list.querySelectorAll("[data-pmi]").forEach(el=>el.addEventListener("click",()=>{pmSel=+el.dataset.pmi;renderPresetMgr();}));
+  form.querySelectorAll("[data-pk]").forEach(el=>el.addEventListener("change",onPmField));
+  const del=form.querySelector("[data-pmdel]");
+  if(del)del.addEventListener("click",()=>{if(!confirm(t("a_confirmDel")(presetLabel(PRESETS[pmSel]))))return;
+    PRESETS.splice(pmSel,1);pmSel=PRESETS.length?Math.min(pmSel,PRESETS.length-1):-1;persist();renderPresetMgr();});
+}
+function exportPresets(){
+  const blob=new Blob([JSON.stringify(PRESETS,null,2)],{type:"application/json"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="laser_presets.json";a.click();URL.revokeObjectURL(a.href);
+}
+function importPresets(text){try{const arr=JSON.parse(text);if(!Array.isArray(arr))throw 0;
+  arr.forEach(p=>{if(!p||typeof p!=="object")return;
+    if(p.thickness===undefined){p.material=p.material||p.name||"";p.thickness="";delete p.name;}
+    if(p.effect===undefined)p.effect="";
+    PRESETS.push(p);});persist();refreshPresetUI();alert(t("a_importOk")(arr.length));}
+  catch(e){alert(t("a_jsonBad"));}}
+
+// ============================================================ wiring
+function loadText(text){
+  try{RAW=parseSVG(text);buildLayers(RAW);
+    document.getElementById("importInfo").innerHTML=t("imp_loaded")();
+    document.getElementById("gen").disabled=false;resetView();scheduleRun();
+  }catch(e){document.getElementById("importInfo").innerHTML=t("imp_fail")(e.message);document.getElementById("gen").disabled=true;}
+}
+const drop=document.getElementById("drop"),fileEl=document.getElementById("file");
+drop.addEventListener("click",()=>fileEl.click());
+fileEl.addEventListener("change",e=>{const f=e.target.files[0];if(f)f.text().then(loadText);});
+["dragover","dragenter"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add("hover");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove("hover");}));
+drop.addEventListener("drop",e=>{const f=e.dataTransfer.files[0];if(f)f.text().then(loadText);});
+document.getElementById("gen").addEventListener("click",generate);
+["outW","origin","maxS","rapid","air","frame"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("change",scheduleRun);});
+document.getElementById("dl").addEventListener("click",()=>{
+  const blob=new Blob([LAST_GCODE],{type:"text/plain"});const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);a.download="output.nc";a.click();URL.revokeObjectURL(a.href);});
+document.getElementById("applyPreset").addEventListener("click",applyPreset);
+document.getElementById("openPresetMgr").addEventListener("click",openPresetMgr);
+document.getElementById("pmClose").addEventListener("click",closePresetMgr);
+document.getElementById("presetModal").addEventListener("click",e=>{if(e.target.id==="presetModal")closePresetMgr();});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closePresetMgr();});
+document.getElementById("pmNewBlank").addEventListener("click",pmNewBlank);
+document.getElementById("pmNewFromLayer").addEventListener("click",pmNewFromLayer);
+document.getElementById("pmLoadBuiltin").addEventListener("click",pmLoadBuiltin);
+document.getElementById("pmExport").addEventListener("click",exportPresets);
+document.getElementById("pmImport").addEventListener("click",()=>document.getElementById("impFile").click());
+document.getElementById("impFile").addEventListener("change",e=>{const f=e.target.files[0];if(f)f.text().then(tx=>{importPresets(tx);if(document.getElementById("presetModal").style.display!=="none")renderPresetMgr();});});
+document.getElementById("langBtn").addEventListener("click",()=>setLang(LANG==="zh"?"en":"zh"));
+function setView(v){
+  const path=v==="path";
+  document.getElementById("tabPath").classList.toggle("on",path);
+  document.getElementById("tabGcode").classList.toggle("on",!path);
+  document.getElementById("cw").style.display=path?"":"none";
+  document.getElementById("gcodeView").style.display=path?"none":"flex";
+  document.getElementById("legendBox").style.display=path?"":"none";
+  if(path)drawPreview();
+}
+document.getElementById("tabPath").addEventListener("click",()=>setView("path"));
+document.getElementById("tabGcode").addEventListener("click",()=>setView("gcode"));
+setView("path");
+applyI18n();
+loadPresets();
+</script>
+</body>
+</html>
