@@ -1,0 +1,12 @@
+[
+  {"material":"厚卡纸 300g","thickness":"0.3mm","effect":"一次切透 · 必开气泵防燃","mode":"cut","power":45,"feed":350,"passes":1},
+  {"material":"厚卡纸 300g","thickness":"0.3mm","effect":"压折痕不切透 · 便于折叠","mode":"engrave","power":12,"feed":1800,"passes":1},
+  {"material":"白画布 棉","thickness":"布","effect":"浅褐图案雕刻 · 不烧穿","mode":"engrave","power":18,"feed":3000,"passes":1},
+  {"material":"白画布 棉","thickness":"布","effect":"裁断布料 · 开气泵防燃边","mode":"cut","power":35,"feed":600,"passes":1},
+  {"material":"椴木胶合板","thickness":"2mm","effect":"一次切透 · 底面轻焦","mode":"cut","power":100,"feed":300,"passes":2},
+  {"material":"椴木胶合板","thickness":"3mm","effect":"切透 · 3遍稳","mode":"cut","power":100,"feed":220,"passes":3},
+  {"material":"椴木胶合板","thickness":"4mm","effect":"切透 · 边缘微焦","mode":"cut","power":100,"feed":180,"passes":4},
+  {"material":"椴木胶合板","thickness":"5mm","effect":"切透 · 需慢速多遍","mode":"cut","power":100,"feed":150,"passes":5},
+  {"material":"椴木胶合板","thickness":"6mm","effect":"极限切透 · 焦边明显","mode":"cut","power":100,"feed":130,"passes":6},
+  {"material":"椴木胶合板","thickness":"3mm","effect":"表面深棕线条雕","mode":"engrave","power":30,"feed":3000,"passes":1}
+]
