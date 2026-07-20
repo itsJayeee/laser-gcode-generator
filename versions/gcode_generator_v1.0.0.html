@@ -111,7 +111,6 @@
 <header>
   <span class="logo"></span>
   <h1 data-i18n="app">G-code Generator</h1>
-  <span class="tag" id="appVer" style="font-size:11px">v1.6.0</span>
   <span class="sub" data-i18n="sub">SVG → 路径模式 + 优化 → GRBL G-code · 纯本地</span>
   <button class="langbtn" id="langBtn">EN</button>
 </header>
@@ -235,9 +234,6 @@ const I18N={
     layers_word:"层", untitled:"未命名",
     l_mode:"模式", l_engrave:"雕 M4", l_cut:"切 M3", l_power:"功率%", l_feed:"F", l_passes:"次数",
     l_order:"加工顺序", l_name:"层名", l_fillParams:"填充参数", l_spacing:"间距mm", l_angle:"角度°",
-    l_fillDir:"线迹方向", fd_angle:"固定角度", fd_normal:"垂直笔画(法线)",
-    l_strokeStyle:"笔画风格", ss_uniform:"均匀", ss_taper:"两端收锋", ss_nib:"书法笔锋(斜切)", ss_brush:"毛笔(收锋+笔锋)", ss_spark:"火药爆破", l_nibAngle:"笔锋角度°",
-    fd_normalHint:"每条线迹垂直于笔画走向,长度≈笔画宽度。所有线迹长度一致,加减速与热积累一致,厚材料切透更均匀。",
     l_outline:"走轮廓", l_thickTitle:"加粗描边(单线→实心)", l_strokeW:"笔宽",
     l_thickOutline:"走轮廓(外框)", l_thickFill:"填充(实心)",
     l_thickHint:"把笔宽两侧偏移成闭合带,再对带子走轮廓/填充。适合签名、单线字体加粗。",
@@ -277,9 +273,6 @@ const I18N={
     layers_word:"layers", untitled:"untitled",
     l_mode:"Mode", l_engrave:"Engrave M4", l_cut:"Cut M3", l_power:"Power%", l_feed:"F", l_passes:"Passes",
     l_order:"Order", l_name:"Layer name", l_fillParams:"Fill parameters", l_spacing:"Spacing mm", l_angle:"Angle°",
-    l_fillDir:"Hatch direction", fd_angle:"Fixed angle", fd_normal:"Perpendicular to stroke",
-    l_strokeStyle:"Stroke style", ss_uniform:"Uniform", ss_taper:"Tapered ends", ss_nib:"Calligraphy nib", ss_brush:"Brush (taper+nib)", ss_spark:"Gunpowder burst", l_nibAngle:"Nib angle°",
-    fd_normalHint:"Each hatch line runs perpendicular to the stroke, with length ≈ stroke width. Uniform line length means uniform accel/heat, so thick materials cut through evenly.",
     l_outline:"Outline", l_thickTitle:"Thicken → solid", l_strokeW:"Stroke",
     l_thickOutline:"Outline (frame)", l_thickFill:"Fill (solid)",
     l_thickHint:"Offsets the stroke width to both sides into a closed band, then outlines/fills it. Good for signatures and single-line fonts.",
@@ -318,7 +311,6 @@ function applyI18n(){
 function setLang(l){LANG=l;localStorage.setItem("laser_lang",l);applyI18n();}
 
 // ============================================================ state
-const APP_VERSION="1.6.0";
 let RAW=null, LAYERS=[], selLayer=0, LAST_GCODE="", LAST_GEOM=null;
 let PRESETS=[];
 const PKEY="laser_presets_v1";
@@ -359,19 +351,9 @@ function parseSVG(text){
   return contours;
 }
 function applyM(m,x,y){return m?[m.a*x+m.c*y+m.e,m.b*x+m.d*y+m.f]:[x,y];}
-function strokeColor(el){
-  let s=null;
-  // 1) 首选:浏览器计算后的最终样式(可正确处理 CSS class、内联 style、父级<g>继承)
-  try{
-    const cs=getComputedStyle(el);
-    const st=cs.stroke, fl=cs.fill;
-    if(st&&st!=="none"&&!st.startsWith("url"))s=st;
-    else if(fl&&fl!=="none"&&!fl.startsWith("url"))s=fl;
-  }catch(e){}
-  // 2) 兜底:沿祖先链向上找 stroke / fill 属性
-  if(!s){let n=el;while(n&&n.nodeType===1){const a=n.getAttribute("stroke");if(a&&a!=="none"){s=a;break;}n=n.parentElement;}}
-  if(!s){let n=el;while(n&&n.nodeType===1){const a=n.getAttribute("fill");if(a&&a!=="none"){s=a;break;}n=n.parentElement;}}
-  return normColor(s||"#000000");}
+function strokeColor(el){let s=el.getAttribute("stroke");
+  if(!s||s==="none"){const f=el.getAttribute("fill");s=(f&&f!=="none")?f:"#000000";}
+  return normColor(s);}
 function normColor(c){const cv=document.createElement("canvas").getContext("2d");cv.fillStyle="#000";cv.fillStyle=c;return cv.fillStyle;}
 
 // ============================================================ layers
@@ -380,9 +362,8 @@ function buildLayers(contours){
   contours.forEach(c=>seen.set(c.color,(seen.get(c.color)||0)+1));
   LAYERS=[...seen.keys()].map((color,i)=>({
     color,name:t("layerName")(i+1),mode:"engrave",power:30,feed:3000,passes:1,order:i+1,enabled:true,count:seen.get(color),
-    pathMode:"outline",fillSpacing:0.15,fillAngle:45,fillDir:"angle",fillOutline:true,
-    lenComp:false,lenCompRef:2,lenCompFull:15,lenCompMax:35,
-    strokeW:1.5,thickenOutline:true,thickenFill:true,strokeStyle:"uniform",nibAngle:30
+    pathMode:"outline",fillSpacing:0.15,fillAngle:45,fillOutline:true,
+    strokeW:1.5,thickenOutline:true,thickenFill:true
   }));
   selLayer=0;renderLayers();
 }
@@ -413,16 +394,8 @@ function renderLayers(){
           <div style="font-size:11px;color:var(--mut);margin-bottom:8px">${t("l_fillParams")}</div>
           <div class="grid2">
             <div><label>${t("l_spacing")}</label><input type="number" step="0.01" value="${L.fillSpacing}" data-i="${idx}" data-k="fillSpacing"></div>
-            <div><label>${t("l_fillDir")}</label><select data-i="${idx}" data-k="fillDir">
-              <option value="angle" ${(L.fillDir||"angle")==="angle"?"selected":""}>${t("fd_angle")}</option>
-              <option value="normal" ${L.fillDir==="normal"?"selected":""}>${t("fd_normal")}</option>
-            </select></div>
-          </div>
-          ${(L.fillDir||"angle")==="angle"?`
-          <div class="grid2" style="margin-top:8px">
             <div><label>${t("l_angle")}</label><input type="number" value="${L.fillAngle}" data-i="${idx}" data-k="fillAngle"></div>
-            <div></div>
-          </div>`:`<div class="hint">${t("fd_normalHint")}</div>`}
+          </div>
           <label style="display:flex;align-items:center;gap:6px;margin:9px 0 0;text-transform:none;letter-spacing:0"><input type="checkbox" ${L.fillOutline?"checked":""} data-i="${idx}" data-k="fillOutline">${t("l_outline")}</label>
         </div>`:""}
         ${L.pathMode==="thicken"?`
@@ -431,33 +404,14 @@ function renderLayers(){
             <span>${t("l_thickTitle")}</span><span style="white-space:nowrap">${t("l_strokeW")} <b id="strokeWVal" style="color:var(--txt)">${L.strokeW.toFixed(1)}</b> mm</span></div>
           <input type="range" id="strokeWSlider" min="0.5" max="4" step="0.1" value="${L.strokeW}" data-i="${idx}" style="width:100%;padding:0">
           <div class="grid2" style="margin-top:10px">
-            <div><label>${t("l_strokeStyle")}</label><select data-i="${idx}" data-k="strokeStyle">
-              <option value="uniform" ${(L.strokeStyle||"uniform")==="uniform"?"selected":""}>${t("ss_uniform")}</option>
-              <option value="taper" ${L.strokeStyle==="taper"?"selected":""}>${t("ss_taper")}</option>
-              <option value="nib" ${L.strokeStyle==="nib"?"selected":""}>${t("ss_nib")}</option>
-              <option value="brush" ${L.strokeStyle==="brush"?"selected":""}>${t("ss_brush")}</option>
-              <option value="spark" ${L.strokeStyle==="spark"?"selected":""}>${t("ss_spark")}</option>
-            </select></div>
-            ${(L.strokeStyle==="nib"||L.strokeStyle==="brush")?`
-            <div><label>${t("l_nibAngle")}</label><input type="number" value="${L.nibAngle||30}" min="0" max="180" data-i="${idx}" data-k="nibAngle"></div>`:`<div></div>`}
-          </div>
-          <div class="grid2" style="margin-top:10px">
             <label style="display:flex;align-items:center;gap:5px;margin:0;text-transform:none;letter-spacing:0"><input type="checkbox" ${L.thickenOutline?"checked":""} data-i="${idx}" data-k="thickenOutline">${t("l_thickOutline")}</label>
             <label style="display:flex;align-items:center;gap:5px;margin:0;text-transform:none;letter-spacing:0"><input type="checkbox" ${L.thickenFill?"checked":""} data-i="${idx}" data-k="thickenFill">${t("l_thickFill")}</label>
           </div>
           ${L.thickenFill?`
           <div class="grid2" style="margin-top:10px">
             <div><label>${t("l_spacing")}</label><input type="number" step="0.01" value="${L.fillSpacing}" data-i="${idx}" data-k="fillSpacing"></div>
-            <div><label>${t("l_fillDir")}</label><select data-i="${idx}" data-k="fillDir">
-              <option value="angle" ${(L.fillDir||"angle")==="angle"?"selected":""}>${t("fd_angle")}</option>
-              <option value="normal" ${L.fillDir==="normal"?"selected":""}>${t("fd_normal")}</option>
-            </select></div>
-          </div>
-          ${(L.fillDir||"angle")==="angle"?`
-          <div class="grid2" style="margin-top:8px">
             <div><label>${t("l_angle")}</label><input type="number" value="${L.fillAngle}" data-i="${idx}" data-k="fillAngle"></div>
-            <div></div>
-          </div>`:`<div class="hint">${t("fd_normalHint")}</div>`}`:""}
+          </div>`:""}
           <div class="hint">${t("l_thickHint")}</div>
         </div>`:""}
         ${L.pathMode==="centerline"?`<div class="hint">${t("l_centerHint")}</div>`:""}
@@ -483,10 +437,10 @@ function renderLayers(){
   host.querySelectorAll("[data-k]").forEach(el=>el.addEventListener("change",e=>{
     const i=+e.target.dataset.i,k=e.target.dataset.k;
     let v=e.target.type==="checkbox"?e.target.checked:
-      (["power","feed","passes","order","fillSpacing","fillAngle","strokeW","nibAngle"].includes(k)?+e.target.value:e.target.value);
+      (["power","feed","passes","order","fillSpacing","fillAngle","strokeW"].includes(k)?+e.target.value:e.target.value);
     LAYERS[i][k]=v;
     if(k==="mode"){if(v==="cut"){LAYERS[i].power=90;LAYERS[i].feed=1000;}else{LAYERS[i].power=30;LAYERS[i].feed=3000;}renderLayers();}
-    if(k==="thickenFill"||k==="fillDir"||k==="strokeStyle")renderLayers();
+    if(k==="thickenFill")renderLayers();
     scheduleRun();
   }));
   const sl=host.querySelector("#strokeWSlider");
@@ -525,200 +479,14 @@ function hatchFill(polys,spacing,angleDeg){
     xs.sort((m,n)=>m-n);
     const row=[];
     for(let i=0;i+1<xs.length;i+=2){if(xs[i+1]-xs[i]<1e-6)continue;row.push([inv([xs[i],y]),inv([xs[i+1],y])]);}
-    row.forEach(s=>segs.push({pts:s,closed:false,fill:true}));
+    row.forEach(s=>segs.push({pts:s,closed:false}));
   }
   return segs;
-}
-
-// ============================================================ normal-direction fill (垂直笔画线迹 v3)
-// v3: 转角外伸补线(overhang) — 每段线迹越过顶点延伸 halfW·tan(θ/2),被角平分线裁剪后
-//     两侧线迹族无缝铺满转角扇形区,大角度转弯不再有楔形空缺。
-//     保留: 角平分线分区(零重叠) + 占用网格去重(交叉不重复曝光) + 骨架端点延伸。
-
-function vertexMiters(P){
-  const n=P.length,segN=[],segD=[];
-  for(let i=0;i<n-1;i++){const dx=P[i+1][0]-P[i][0],dy=P[i+1][1]-P[i][1],L=Math.hypot(dx,dy)||1;
-    segD.push([dx/L,dy/L]);segN.push([-dy/L,dx/L]);}
-  const M=[];
-  for(let i=0;i<n;i++){
-    if(i===0)M.push(segN[0]);
-    else if(i===n-1)M.push(segN[n-2]);
-    else{let mx=segN[i-1][0]+segN[i][0],my=segN[i-1][1]+segN[i][1];const ml=Math.hypot(mx,my);
-      M.push(ml<1e-6?segD[i]:[mx/ml,my/ml]);}
-  }
-  return{M,segD};
-}
-// 每个内部顶点的外伸距离 = halfW·tan(θ/2)+spacing (θ为转角,近180°时封顶)
-function computeOverhangs(P,halfWs,spacing){
-  const n=P.length,over=new Array(n).fill(0);
-  for(let i=1;i<n-1;i++){
-    const d1x=P[i][0]-P[i-1][0],d1y=P[i][1]-P[i-1][1];
-    const d2x=P[i+1][0]-P[i][0],d2y=P[i+1][1]-P[i][1];
-    const L1=Math.hypot(d1x,d1y)||1,L2=Math.hypot(d2x,d2y)||1;
-    const c=Math.max(-1,Math.min(1,(d1x*d2x+d1y*d2y)/(L1*L2)));
-    const th=Math.acos(c);
-    if(th<0.02)continue;
-    const hw=Array.isArray(halfWs)?halfWs[i]:halfWs;
-    over[i]=Math.min(hw*Math.tan(Math.min(th,2.8)/2)+spacing,10*hw);
-  }
-  return over;
-}
-// 沿折线采样,相位跨段连续;每段两端按 over[] 向外伸出额外采样(补转角扇形)
-function ribsAlongChain(P,spacing,over,emit){
-  let carry=spacing/2;
-  for(let i=0;i<P.length-1;i++){
-    const A=P[i],B=P[i+1],dx=B[0]-A[0],dy=B[1]-A[1],L=Math.hypot(dx,dy);
-    if(L<1e-9)continue;
-    const tx=dx/L,ty=dy/L,nn=[-ty,tx];
-    const o0=over[i]||0,o1=over[i+1]||0;
-    let d=carry;
-    while(d-spacing>=-o0)d-=spacing;
-    const dEnd=L+o1;
-    for(;d<=dEnd;d+=spacing)emit([A[0]+tx*d,A[1]+ty*d],nn,i,Math.max(0,Math.min(1,d/L)));
-    let dm=carry;while(dm<=L)dm+=spacing;carry=dm-L;
-  }
-}
-function clipHalf(a,b,V,m,refDir){
-  const f=x=>m[0]*(x[1]-V[1])-m[1]*(x[0]-V[0]);
-  const sgn=(m[0]*refDir[1]-m[1]*refDir[0])>=0?1:-1;
-  const fa=f(a)*sgn,fb=f(b)*sgn;
-  if(fa>=0&&fb>=0)return[a,b];
-  if(fa<0&&fb<0)return null;
-  const t=fa/(fa-fb),X=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t];
-  return fa>=0?[a,X]:[X,b];
-}
-function pinp(p,edges){let c=0;
-  for(const[A,B]of edges){if((A[1]<=p[1])!==(B[1]<=p[1])){const t=(p[1]-A[1])/(B[1]-A[1]);
-    if(A[0]+t*(B[0]-A[0])>p[0])c^=1;}}
-  return !!c;}
-function extendChain(P,spacing,edges){
-  if(P.length<2)return P;
-  const ext=(a,b)=>{const dx=b[0]-a[0],dy=b[1]-a[1],L=Math.hypot(dx,dy)||1;
-    const tx=dx/L,ty=dy/L,out=[];let p=b;
-    for(let i=0;i<200;i++){const q=[p[0]+tx*spacing,p[1]+ty*spacing];
-      if(!pinp(q,edges))break;out.push(q);p=q;}
-    return out;};
-  const tail=ext(P[P.length-2],P[P.length-1]);
-  const head=ext(P[1],P[0]).reverse();
-  return head.concat(P,tail);
-}
-// 沿方向n的直线与多边形求交,返回离原点最近的"内部区间"[t0,t1]
-// 采样点在多边形内→包含0的区间;略在外(外伸补线)→maxReach内最近的内部区间
-function rayClip(p,n,edges,maxReach){
-  const ts=[];
-  for(const[A,B]of edges){
-    const ex=B[0]-A[0],ey=B[1]-A[1];
-    const det=ex*n[1]-ey*n[0];
-    if(Math.abs(det)<1e-12)continue;
-    const wx=A[0]-p[0],wy=A[1]-p[1];
-    const u=(n[0]*wy-n[1]*wx)/det;
-    if(u<0||u>=1)continue;
-    ts.push((ex*wy-ey*wx)/det);
-  }
-  if(ts.length<2)return null;
-  ts.sort((a,b)=>a-b);
-  let best=null,bestD=Infinity;
-  for(let j=0;j+1<ts.length;j+=2){ // 奇偶规则:内部区间为(ts[0],ts[1]),(ts[2],ts[3])...
-    const t0=ts[j],t1=ts[j+1];
-    if(t1-t0<1e-6)continue;
-    const dd=(t0<=0&&t1>=0)?0:Math.min(Math.abs(t0),Math.abs(t1));
-    if(dd<bestD){bestD=dd;best=[t0,t1];}
-  }
-  if(!best||bestD>maxReach)return null;
-  return best;
-}
-// 加粗模式(P需已由调用方simplify/densify;halfW可为数字或与P等长的逐点半宽数组)
-function normalRibsThicken(P,spacing,halfW){
-  spacing=Math.max(0.03,spacing);
-  if(!P||P.length<2)return[];
-  const hwAt=i=>Array.isArray(halfW)?halfW[i]:halfW;
-  const{M,segD}=vertexMiters(P);
-  const over=computeOverhangs(P,halfW,spacing);
-  const segs=[];let flip=false;
-  ribsAlongChain(P,spacing,over,(p,n,i,f)=>{
-    const hw=hwAt(i)*(1-f)+hwAt(i+1)*f;
-    if(hw<0.02)return;
-    let r=[[p[0]+n[0]*hw,p[1]+n[1]*hw],[p[0]-n[0]*hw,p[1]-n[1]*hw]];
-    r=clipHalf(r[0],r[1],P[i],M[i],segD[i]);if(!r)return;
-    r=clipHalf(r[0],r[1],P[i+1],M[i+1],[-segD[i][0],-segD[i][1]]);if(!r)return;
-    if(dist(r[0],r[1])<1e-4)return;
-    segs.push({pts:flip?[r[1],r[0]]:[r[0],r[1]],closed:false,fill:true});flip=!flip;
-  });
-  return segs;
-}
-// 填充模式
-function normalRibsFill(closedPolys,spacing){
-  spacing=Math.max(0.03,spacing);
-  const edges=[];
-  closedPolys.forEach(c=>{const P=c.pts.slice();if(dist(P[0],P[P.length-1])>1e-6)P.push(P[0]);
-    for(let i=0;i<P.length-1;i++)edges.push([P[i],P[i+1]]);});
-  if(!edges.length)return[];
-  const chains=centerline(closedPolys);
-  const segs=[];let flip=false;
-  chains.forEach(ch=>{
-    let P=simplify(ch.pts,0.05);
-    P=extendChain(P,spacing,edges);
-    P=simplify(P,0.02);
-    if(P.length<2)return;
-    const{M,segD}=vertexMiters(P);
-    // 逐顶点估算局部半宽(顶点处沿法线量轮廓宽度)
-    const halfWs=P.map((pt,i)=>{
-      let vx,vy;
-      if(i===0){vx=P[1][0]-pt[0];vy=P[1][1]-pt[1];}
-      else if(i===P.length-1){vx=pt[0]-P[i-1][0];vy=pt[1]-P[i-1][1];}
-      else{vx=P[i+1][0]-P[i-1][0];vy=P[i+1][1]-P[i-1][1];}
-      const L=Math.hypot(vx,vy)||1;
-      const iv=rayClip(pt,[-vy/L,vx/L],edges,1e9);
-      return iv?Math.max(0.1,(iv[1]-iv[0])/2):0.75;
-    });
-    const over=computeOverhangs(P,halfWs,spacing);
-    const reach=Math.max(3*spacing,0.15);
-    ribsAlongChain(P,spacing,over,(p,n,i)=>{
-      const iv=rayClip(p,n,edges,reach);if(!iv)return;
-      let r=[[p[0]+n[0]*iv[0],p[1]+n[1]*iv[0]],[p[0]+n[0]*iv[1],p[1]+n[1]*iv[1]]];
-      r=clipHalf(r[0],r[1],P[i],M[i],segD[i]);if(!r)return;
-      r=clipHalf(r[0],r[1],P[i+1],M[i+1],[-segD[i][0],-segD[i][1]]);if(!r)return;
-      if(dist(r[0],r[1])<1e-4)return;
-      segs.push({pts:flip?[r[1],r[0]]:[r[0],r[1]],closed:false,fill:true});flip=!flip;
-    });
-  });
-  return segs;
-}
-// 占用网格去重
-function trimOverlapRibs(list,spacing){
-  const fills=[],others=[];
-  list.forEach(s=>((s.fill&&!s.closed)?fills:others).push(s));
-  if(fills.length<2)return list;
-  const cell=Math.max(0.012,Math.min(spacing*0.45,0.2));
-  let minX=1e9,minY=1e9,maxX=-1e9,maxY=-1e9;
-  fills.forEach(s=>s.pts.forEach(p=>{if(p[0]<minX)minX=p[0];if(p[0]>maxX)maxX=p[0];
-    if(p[1]<minY)minY=p[1];if(p[1]>maxY)maxY=p[1];}));
-  const W=Math.ceil((maxX-minX)/cell)+3,H=Math.ceil((maxY-minY)/cell)+3;
-  if(!(W>0&&H>0)||W*H>4e7)return list;
-  const occ=new Uint8Array(W*H),out=[];
-  const minLen=Math.max(cell*1.5,0.02);
-  fills.forEach(s=>{
-    const A=s.pts[0],B=s.pts[s.pts.length-1];
-    const L=Math.hypot(B[0]-A[0],B[1]-A[1]);
-    const n=Math.max(1,Math.ceil(L/cell));
-    const mark=[];let runA=null,prev=null;
-    const flush=()=>{if(runA&&prev&&dist(runA,prev)>=minLen)out.push({pts:[runA,prev],closed:false,fill:true});runA=null;prev=null;};
-    for(let i=0;i<=n;i++){
-      const x=A[0]+(B[0]-A[0])*i/n,y=A[1]+(B[1]-A[1])*i/n;
-      const ci=(Math.floor((y-minY)/cell)+1)*W+Math.floor((x-minX)/cell)+1;
-      if(!occ[ci]){mark.push(ci);if(!runA)runA=[x,y];prev=[x,y];}
-      else flush();
-    }
-    flush();
-    mark.forEach(c=>occ[c]=1);
-  });
-  return others.concat(out);
 }
 
 // ============================================================ thicken (stroke-to-outline)
 function strokeToOutline(pts,halfW){
   const n=pts.length;if(n<2)return null;
-  const hwAt=i=>Array.isArray(halfW)?halfW[i]:halfW;
   const segN=[];
   for(let i=0;i<n-1;i++){const dx=pts[i+1][0]-pts[i][0],dy=pts[i+1][1]-pts[i][1],L=Math.hypot(dx,dy)||1;segN.push([-dy/L,dx/L]);}
   const vN=[],sc=[];
@@ -729,90 +497,10 @@ function strokeToOutline(pts,halfW){
       if(ml<1e-6){nx=a[0];ny=a[1];}else{mx/=ml;my/=ml;const d=mx*a[0]+my*a[1];s=1/Math.max(0.25,d);nx=mx;ny=my;}}
     vN.push([nx,ny]);sc.push(s);}
   const left=[],right=[];
-  for(let i=0;i<n;i++){const o=hwAt(i)*sc[i];
+  for(let i=0;i<n;i++){const o=halfW*sc[i];
     left.push([pts[i][0]+vN[i][0]*o,pts[i][1]+vN[i][1]*o]);
     right.push([pts[i][0]-vN[i][0]*o,pts[i][1]-vN[i][1]*o]);}
   return left.concat(right.reverse());
-}
-// 折线加密:长段插入中间点,使宽度变化有足够分辨率
-function densify(P,maxLen){
-  if(P.length<2)return P;
-  const out=[P[0]];
-  for(let i=1;i<P.length;i++){
-    const A=P[i-1],B=P[i],L=Math.hypot(B[0]-A[0],B[1]-A[1]);
-    const k=Math.max(1,Math.ceil(L/maxLen));
-    for(let j=1;j<=k;j++)out.push([A[0]+(B[0]-A[0])*j/k,A[1]+(B[1]-A[1])*j/k]);
-  }
-  return out;
-}
-// 笔画风格:逐点半宽数组。uniform=定宽 | taper=两端收锋 | nib=斜切笔锋 | brush=叠加 | spark=火药爆破(收锋+噪声)
-function strokeWidths(P,baseHalf,style,nibDeg,closed){
-  const n=P.length;
-  if(style==="uniform"||!style||n<2)return baseHalf;
-  const cum=[0];
-  for(let i=1;i<n;i++)cum.push(cum[i-1]+Math.hypot(P[i][0]-P[i-1][0],P[i][1]-P[i-1][1]));
-  const total=cum[n-1]||1;
-  const taperLen=Math.min(total*0.35,Math.max(baseHalf*5,1.5));
-  const minR=0.2,a=((+nibDeg||30))*Math.PI/180;
-  const seed=(P[0][0]*7.31+P[0][1]*15.17)%6.28;
-  let ws=[];
-  for(let i=0;i<n;i++){
-    let f=1;
-    if(!closed&&(style==="taper"||style==="brush"||style==="spark")){
-      const de=Math.min(cum[i],total-cum[i]);
-      if(de<taperLen){const t=de/taperLen;f*=minR+(1-minR)*Math.sin(t*Math.PI/2);}
-    }
-    if(style==="nib"||style==="brush"){
-      const i0=Math.max(0,i-1),i1=Math.min(n-1,i+1);
-      const dirA=Math.atan2(P[i1][1]-P[i0][1],P[i1][0]-P[i0][0]);
-      f*=minR+(1-minR)*Math.abs(Math.sin(dirA-a));
-    }
-    if(style==="spark"){ // 平滑噪声:火药烧过的不规则粗细
-      f*=0.82+0.16*Math.sin(cum[i]*1.7+seed)+0.12*Math.sin(cum[i]*4.3+seed*2.7);
-    }
-    ws.push(Math.max(baseHalf*0.12,baseHalf*f));
-  }
-  for(let k=0;k<2;k++){ // 平滑两遍,避免宽度突变
-    const s2=ws.slice();
-    for(let i=1;i<n-1;i++)s2[i]=(ws[i-1]+2*ws[i]+ws[i+1])/4;
-    ws=s2;
-  }
-  return ws;
-}
-// 确定性伪随机(同输入同输出,保证G-code可复现)
-function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
-// 火药爆破装饰:边缘灼烧外溢短刺 + 周围飞溅火花
-function gunpowderDecor(P,ws,spacing){
-  const segs=[];if(!P||P.length<2)return segs;
-  const hwAt=(i,f)=>{const g=x=>Array.isArray(ws)?ws[x]:ws;return g(i)*(1-f)+g(Math.min(i+1,P.length-1))*f;};
-  const rng=mulberry32((Math.abs(Math.round(P[0][0]*997+P[0][1]*7919))|0)+13);
-  for(let i=0;i<P.length-1;i++){
-    const A=P[i],B=P[i+1],L=Math.hypot(B[0]-A[0],B[1]-A[1]);
-    if(L<1e-9)continue;
-    const tx=(B[0]-A[0])/L,ty=(B[1]-A[1])/L,nx=-ty,ny=tx;
-    let d=0;
-    while(d<L){
-      const f=d/L,p=[A[0]+tx*d,A[1]+ty*d],hw=hwAt(i,f);
-      if(rng()<0.22){ // 灼烧外溢:从轮廓边缘向外的短刺
-        const s=rng()<0.5?1:-1,j=(rng()-0.5)*1.0;
-        const ca=Math.cos(j),sa=Math.sin(j);
-        const rx=(nx*ca-ny*sa)*s,ry=(nx*sa+ny*ca)*s;
-        const len=hw*(0.25+1.1*rng()*rng());
-        const a0=[p[0]+rx*hw*0.98,p[1]+ry*hw*0.98];
-        segs.push({pts:[a0,[a0[0]+rx*len,a0[1]+ry*len]],closed:false,fill:true});
-      }
-      if(rng()<0.08){ // 飞溅火花:远处微小斜线段
-        const s=rng()<0.5?1:-1;
-        const dd=hw*(1.6+2.8*rng()*rng());
-        const c=[p[0]+nx*s*dd+(rng()-0.5)*hw,p[1]+ny*s*dd+(rng()-0.5)*hw];
-        const ang=Math.atan2(ny*s,nx*s)+(rng()-0.5)*1.2;
-        const hl=(0.12+0.5*rng())/2;
-        segs.push({pts:[[c[0]-Math.cos(ang)*hl,c[1]-Math.sin(ang)*hl],[c[0]+Math.cos(ang)*hl,c[1]+Math.sin(ang)*hl]],closed:false,fill:true});
-      }
-      d+=spacing*2.2;
-    }
-  }
-  return segs;
 }
 
 // ============================================================ centerline (raster thinning)
@@ -879,27 +567,18 @@ function processLayer(L,cs){
   if(L.pathMode==="thicken"){
     const hw=Math.max(0.05,(L.strokeW||1.5)/2),out=[];
     const doFill=L.thickenFill,doOutline=L.thickenOutline||!doFill;
-    const style0=L.strokeStyle||"uniform";
     cs.forEach(c=>{
-      // 闭合路径无起止,收锋不适用:taper退化为均匀,brush退化为笔锋
-      const style=c.closed?(style0==="taper"?"uniform":(style0==="brush"?"nib":style0)):style0;
-      const P=densify(simplify(c.pts,0.02),0.8);
-      const ws=strokeWidths(P,hw,style,L.nibAngle,c.closed);
-      const rib=strokeToOutline(P,ws);if(!rib)return;
-      if(doFill){
-        if((L.fillDir||"angle")==="normal")normalRibsThicken(P,L.fillSpacing,ws).forEach(s=>out.push(s));
-        else hatchFill([{pts:rib,closed:true}],L.fillSpacing,L.fillAngle).forEach(s=>out.push(s));
-      }
-      if(style==="spark")gunpowderDecor(P,ws,L.fillSpacing).forEach(s=>out.push(s));
-      if(doOutline&&style!=="spark")out.push({pts:rib.concat([rib[0]]),closed:true}); // 爆破风不描规整轮廓
+      const rib=strokeToOutline(c.pts,hw);if(!rib)return;
+      if(doFill)hatchFill([{pts:rib,closed:true}],L.fillSpacing,L.fillAngle).forEach(s=>out.push(s));
+      if(doOutline)out.push({pts:rib.concat([rib[0]]),closed:true});
     });
-    return (L.fillDir||"angle")==="normal"?trimOverlapRibs(out,L.fillSpacing):out;
+    return out;
   }
   const closed=cs.filter(c=>c.closed);
-  let out=(L.fillDir||"angle")==="normal"?normalRibsFill(closed,L.fillSpacing):hatchFill(closed,L.fillSpacing,L.fillAngle);
+  let out=hatchFill(closed,L.fillSpacing,L.fillAngle);
   if(L.fillOutline)out=out.concat(cs.map(c=>({pts:c.pts,closed:c.closed})));
   cs.filter(c=>!c.closed).forEach(c=>out.push({pts:c.pts,closed:false}));
-  return (L.fillDir||"angle")==="normal"?trimOverlapRibs(out,L.fillSpacing):out;
+  return out;
 }
 
 // ============================================================ optimizer
@@ -928,7 +607,7 @@ function generate(){
   const air=document.getElementById("air").checked,frame=document.getElementById("frame").checked,start=[0,0];
   const geo=toMM(RAW),bbox=geo.bbox;
   const active=LAYERS.filter(L=>L.enabled).slice().sort((a,b)=>a.order-b.order);
-  const g=[`; Generated by LaserGRBL G-code Generator (Fono) v${APP_VERSION}`,"; "+new Date().toISOString(),"G21 ; mm","G90 ; absolute","G17"];
+  const g=["; Generated by LaserGRBL G-code Generator (Fono)","; "+new Date().toISOString(),"G21 ; mm","G90 ; absolute","G17"];
   if(air)g.push("M8 ; air on");
   if(frame){g.push("; --- framing ---");
     g.push(`G0 X${f3(bbox.minX)} Y${f3(bbox.minY)} S0`);g.push(`G0 X${f3(bbox.maxX)} Y${f3(bbox.minY)}`);
