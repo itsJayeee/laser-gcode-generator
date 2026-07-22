@@ -2,6 +2,18 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.8.0 (2026-07-20)
+### Dual-tool robot-arm painting pipeline (powder + laser)
+- Per-layer device selection: Laser or Vibration motor (powder dispenser); both share one PWM channel, so G-code is emitted in two phases — PHASE 1 runs all powder layers, then `M0` pauses for the physical tool swap, then PHASE 2 runs all laser layers
+- Motor layers trace the stroke centerline once (open paths as-is, closed shapes via skeleton extraction) with per-segment `S` amplitude modulation; powder phase uses `M3` constant mode so amplitude does not dip during accel/decel
+- Width rhythm from stroke styles (uniform / taper / nib / brush) drives amplitude: design widths are normalized and stretched onto the usable amplitude range, with a contrast γ control
+- Powder component profiles: per-component measured amplitude→line-width curves stored locally; amplitude is inverse-interpolated from the curve so different 3D-printed dispensers and powders reproduce the same design rhythm within their own dynamic range
+- Calibration wizard: one-click stepped-amplitude test pattern (`calib.nc`), fill-in measurement table, plus a quick single-point drift calibration that rescales the whole curve before daily sessions
+- Look-ahead compensation shifts amplitude changes earlier along the path to counter powder-flow lag
+- Purge routine before the powder phase (position, duration, amplitude configurable) to establish powder flow
+- Motor tool offset (dX/dY) applied to powder-phase coordinates so both tools hit the same lines; optional `G92 X0 Y0` zeroing at the current arm position for variable start points
+- Preview renders motor layers with variable line width matching the powder rhythm
+
 ## v1.7.0 (2026-07-20)
 ### Performance — no more UI freezes on complex graphics
 - All heavy geometry (skeleton thinning, rib generation, path ordering) now runs in a Web Worker built from the app's own pure functions; the UI stays responsive and a newer parameter change terminates the stale computation (latest-wins)
