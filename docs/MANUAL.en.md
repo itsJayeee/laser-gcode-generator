@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.8.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.9.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 
@@ -9,26 +9,21 @@ This tool is a **single-file HTML app** built for a robot-arm painting workflow:
 ## 1. Quick start
 
 1. Open `gcode_generator.html`;
-2. Drag an SVG (or PNG/JPG image) into the import area;
-3. Set path mode and power/feed for each color layer under "Layer parameters";
-4. Wait for the preview to refresh (heavy work runs in the background — the UI never freezes);
-5. Click "Download" to get a `.nc` file and feed it to GRBL.
+2. Pick the **Job mode** at the top (Laser / Motor / Dual);
+3. Drag an SVG into the import area;
+4. Configure each color layer under "Layer parameters";
+5. Wait for the preview to refresh (heavy work runs in the background — the UI never freezes);
+6. Click "Download" to get a `.nc` file and feed it to GRBL.
 
 **Minimal example**: draw a circle with a black stroke in Illustrator/Inkscape, export SVG, drop it in → it becomes one black layer → path mode "Outline" → power 30%, feed 1800 → download. The G-code traces the circle once.
 
 ---
 
-## 2. Importing files
-
-### 2.1 SVG (vector)
+## 2. Importing files (SVG)
 
 Supports path/line/polyline/polygon/rect/circle/ellipse. **Layers are split by stroke color** — every distinct color becomes an independently configurable layer. Color detection handles all common conventions (CSS classes, inline styles, inherited `<g>` attributes, direct attributes), so exports from Illustrator / Figma / Inkscape split correctly.
 
 > Example: to control "powder strokes" and "laser-only details" separately, draw them in two colors (e.g. red and black) in your design app; they import as two layers.
-
-### 2.2 Bitmaps (PNG / JPG / JPEG / WebP / BMP)
-
-Dropping a bitmap enters **raster engrave mode** (see §7). Transparent pixels are treated as white; images above 1600 px are downscaled for speed.
 
 ---
 
@@ -88,24 +83,17 @@ Bold fills also support the perpendicular hatch direction, and rib length follow
 
 ---
 
-## 7. Raster image engraving
+## 7. Job modes
 
-With a bitmap loaded, the layer panel becomes raster parameters:
+Section 0 at the top selects the job mode; only settings relevant to that mode are shown:
 
-- **Line spacing**: scan row pitch, typically 0.1–0.2 mm;
-- **Raster mode**:
-  - **Grayscale (power modulation)**: laser power follows pixel brightness (M4, 32 quantized levels) — for materials that render gray, like wood;
-  - **Dither (FS)**: Floyd–Steinberg error diffusion to a 1-bit dot pattern — **strongly recommended for binary media like cardstock**, much better tonal range than power modulation;
-  - **B/W threshold**: hard 50% binarization;
-- **Max/min power, feed**;
-- **Skip-white threshold**: pixels brighter than this are skipped with travel moves;
-- **Invert**: negative.
+| Mode | Behavior |
+|---|---|
+| **Laser engraving** | All layers are laser; motor offset, purge and other powder settings are hidden; material presets available |
+| **Vibration motor (powder)** | All layers dispense powder; material presets hidden (a laser-material concept); motor offset hidden (zero via G92 for a single tool); purge available |
+| **Dual process (powder then laser)** | Per-layer device selection; all powder/dual-tool settings visible; output has two phases with an M0 tool swap between |
 
-Rows run along X, serpentine. Output file is `raster.nc`.
-
-> Example: a portrait photo on cardstock → dither mode, spacing 0.12, max power 45%, feed 3000.
-
----
+The selection is remembered across sessions.
 
 ## 8. Devices & the dual-tool pipeline (robot arm: powder + laser)
 

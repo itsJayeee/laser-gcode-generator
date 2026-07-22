@@ -2,6 +2,16 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.9.0 (2026-07-22)
+### UI restructure: job modes
+- New top-level **Job mode** selector — Laser / Vibration motor (powder) / Dual process — remembered across sessions
+- Laser mode hides all powder settings (motor offset, purge) and per-layer device selectors
+- Motor mode hides material presets (a laser-material concept) and the motor offset (zero via G92 for a single tool); all layers dispense powder
+- Dual mode keeps per-layer device selection with the full settings surface
+
+### Removed
+- Raster bitmap engraving (PNG/JPG import, grayscale/dither/threshold modes) removed to keep the tool focused on the vector powder+laser workflow; the last version with raster support is archived as `versions/gcode_generator_v1.8.0.html`
+
 ## v1.8.0 (2026-07-20)
 ### Dual-tool robot-arm painting pipeline (powder + laser)
 - Per-layer device selection: Laser or Vibration motor (powder dispenser); both share one PWM channel, so G-code is emitted in two phases — PHASE 1 runs all powder layers, then `M0` pauses for the physical tool swap, then PHASE 2 runs all laser layers
