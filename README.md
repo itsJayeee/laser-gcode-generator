@@ -1,6 +1,14 @@
 # laser-gcode-generator
 # Laser G-code Generator
 
+
+## Documentation / 文档
+
+- **[使用手册（中文）](docs/MANUAL.zh-CN.md)** — 每个功能的详细说明与示例
+- **[User Manual (English)](docs/MANUAL.en.md)** — detailed usage of every feature with examples
+- [Changelog](CHANGELOG.md) — release history; full snapshots of each release under `versions/`
+
+
 A **single-file, zero-dependency, fully offline** laser cutting/engraving G-code generator. Drop an SVG into your browser, tune the parameters, download the `.nc` file — nothing to install, and nothing ever leaves your machine.
 
 ## Quick start
