@@ -2,6 +2,11 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.10.0 (2026-07-23)
+### Parameter persistence — no more re-entering settings
+- All global settings and per-color layer parameters auto-save to browser storage and restore on reload; re-importing an SVG with the same stroke colors re-applies each color's last-used parameters (power, feed, mode, stroke style, powder settings, layer name)
+- Project files: "Save project" exports the SVG artwork + all parameters + powder profiles as one JSON; "Load project" restores the entire workspace in one click — archivable and portable
+
 ## v1.9.1 (2026-07-23)
 ### Fixed — "Computing…" hang
 - v1.9.0's raster-removal accidentally deleted the `setStat`/`fmtTime` helpers; any generation then threw inside the output builder and the Generate button stayed on "Computing…" forever. Helpers restored.

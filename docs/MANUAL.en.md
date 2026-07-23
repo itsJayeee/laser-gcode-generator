@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.9.1** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.10.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 
@@ -24,6 +24,14 @@ This tool is a **single-file HTML app** built for a robot-arm painting workflow:
 Supports path/line/polyline/polygon/rect/circle/ellipse. **Layers are split by stroke color** — every distinct color becomes an independently configurable layer. Color detection handles all common conventions (CSS classes, inline styles, inherited `<g>` attributes, direct attributes), so exports from Illustrator / Figma / Inkscape split correctly.
 
 > Example: to control "powder strokes" and "laser-only details" separately, draw them in two colors (e.g. red and black) in your design app; they import as two layers.
+
+---
+
+## 2.5 Parameter memory & project files
+
+**Auto-memory**: all global settings and every color layer's parameters (power/feed/mode/stroke style, etc.) are saved automatically in the browser. Refreshing the page or reopening tomorrow restores everything; re-importing an SVG that uses the same colors re-applies each color's last parameters — mappings like "red = construction lines S550 F600" are set once and persist.
+
+**Project files**: "Save project" in the import section bundles the **SVG artwork + all parameters (including powder profiles)** into a downloadable `.json`; "Load project" restores the whole state in one click. Keep one file per artwork or parameter scheme — archivable, portable across machines, Git-friendly. Note that browser memory is lost when browser data is cleared; save a project file for anything important.
 
 ---
 
