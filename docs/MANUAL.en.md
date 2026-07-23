@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.9.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.9.1** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 

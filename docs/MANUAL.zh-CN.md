@@ -1,6 +1,6 @@
 # LaserGRBL G-code 生成器 · 使用手册
 
-适用版本：**v1.9.0** ｜ [English version](MANUAL.en.md) ｜ 本手册随每次版本发布同步更新，历史改动见 [CHANGELOG](../CHANGELOG.md)。
+适用版本：**v1.9.1** ｜ [English version](MANUAL.en.md) ｜ 本手册随每次版本发布同步更新，历史改动见 [CHANGELOG](../CHANGELOG.md)。
 
 本工具是一个**单文件 HTML 应用**，面向机械臂绘画工作流：振动马达撒粉 + 激光燃烧双工具，也可作为普通激光雕刻/切割的 G-code 生成器使用。无需安装，浏览器打开 `gcode_generator.html` 即可（推荐 Chrome/Edge）。
 

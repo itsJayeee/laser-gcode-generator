@@ -2,6 +2,14 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.9.1 (2026-07-23)
+### Fixed — "Computing…" hang
+- v1.9.0's raster-removal accidentally deleted the `setStat`/`fmtTime` helpers; any generation then threw inside the output builder and the Generate button stayed on "Computing…" forever. Helpers restored.
+- Worker callbacks now wrap output building in try/catch, so any future exception surfaces as an error message instead of a stuck button.
+- All `localStorage` access is wrapped in try/catch; restricted browser storage no longer kills the whole script on load.
+### Cleaned
+- Removed duplicate `l_strokeW` i18n keys; verified zero leftover raster references and no orphan functions.
+
 ## v1.9.0 (2026-07-22)
 ### UI restructure: job modes
 - New top-level **Job mode** selector — Laser / Vibration motor (powder) / Dual process — remembered across sessions
