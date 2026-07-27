@@ -2,6 +2,26 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.11.0 (2026-07-27)
+### Fixed — project load failing intermittently
+- "Load project" (and SVG / preset-JSON pickers) reset the file input **synchronously** while the file was still being read asynchronously; on some engines (notably WebKit) clearing the input invalidates the `File` mid-read, so loading silently did nothing. The reset now happens only after the read settles, and a read failure shows an explicit "invalid project file" alert instead of failing silently. The failure looked mode-dependent (reported as "can't load in motor mode") but was a timing race.
+- Side fix from the same audit: selecting the same SVG file twice in a row did nothing (input value was never cleared); all three file pickers now clear after the read completes, so re-selecting the same file always works.
+
+### Named project files
+- "Save project" now prompts for a project name (defaults to the SVG's file name); the file downloads as `<name>.json` and the name is stored inside the project, so the next save suggests it again.
+
+### G-code file name follows the SVG
+- The downloaded `.nc` (and the name badge above the G-code preview) now uses the imported SVG's base name — `dragon.svg` → `dragon.nc`. The SVG name is stored in project files so it survives save/load. Calibration patterns still download as `calib.nc`.
+
+### Material presets: powder field
+- Presets gain a free-text **Powder** field (vendor · color · grain · batch) alongside material / thickness / effect. Ignition parameters depend on the powder × canvas combination, so one preset records one tested combination. Existing presets migrate automatically (empty powder). As always, preset values are estimates until measured.
+
+### Material presets: draft mode with explicit Save
+- The preset manager no longer persists every keystroke. All edits (fields, new, delete, import, load built-in) act on a draft; a new **Save presets** button writes them to storage. Closing with unsaved changes asks for confirmation — accidental edits or deletions are undone by simply closing the window.
+
+### Calibration wizard: unified save semantics
+- Profile deletion and quick drift-calibration previously took effect immediately; they now also act on a draft and only persist via **Save profile**, matching the preset manager. Closing with unsaved changes asks for confirmation.
+
 ## v1.10.0 (2026-07-23)
 ### Parameter persistence — no more re-entering settings
 - All global settings and per-color layer parameters auto-save to browser storage and restore on reload; re-importing an SVG with the same stroke colors re-applies each color's last-used parameters (power, feed, mode, stroke style, powder settings, layer name)

@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.10.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.11.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 
@@ -32,6 +32,10 @@ Supports path/line/polyline/polygon/rect/circle/ellipse. **Layers are split by s
 **Auto-memory**: all global settings and every color layer's parameters (power/feed/mode/stroke style, etc.) are saved automatically in the browser. Refreshing the page or reopening tomorrow restores everything; re-importing an SVG that uses the same colors re-applies each color's last parameters — mappings like "red = construction lines S550 F600" are set once and persist.
 
 **Project files**: "Save project" in the import section bundles the **SVG artwork + all parameters (including powder profiles)** into a downloadable `.json`; "Load project" restores the whole state in one click. Keep one file per artwork or parameter scheme — archivable, portable across machines, Git-friendly. Note that browser memory is lost when browser data is cleared; save a project file for anything important.
+
+**Project naming (v1.11.0)**: "Save project" prompts for a name (defaults to the SVG's file name) and downloads `<name>.json`; the name is stored in the project so the next save suggests it again.
+
+**G-code file name (v1.11.0)**: the downloaded `.nc` (and the name badge above the G-code preview) uses the imported SVG's base name — `dragon.svg` → `dragon.nc`. The SVG name is stored in project files, so it survives save/load. Calibration patterns still download as `calib.nc`.
 
 ---
 
@@ -150,6 +154,8 @@ In a motor layer, click "Calibration wizard…":
 
 **Quick drift calibration** (daily): hopper level and humidity drift the flow. Draw one line at a reference amplitude (e.g. 60%), enter today's measured width, click the scale button — the whole curve rescales proportionally in seconds.
 
+**Save semantics (v1.11.0)**: all changes inside the wizard (table values, new/delete profile, drift calibration) are a draft; only **Save profile** persists them and makes them affect G-code generation. Closing with unsaved changes asks for confirmation — an accidental profile deletion is undone by closing the window.
+
 ### 9.5 Purge
 
 After idle time the powder in the line is "asleep" and the first stroke comes out broken. With purge enabled, the arm first goes to a waste location and dispenses for a set duration to establish flow before the real paths.
@@ -162,7 +168,11 @@ The nozzle and the laser spot are physically apart. Calibrate once: draw a small
 
 ## 10. Material presets
 
-The presets dropdown applies mode/power/feed/passes for a material/thickness/effect in one click. The manager supports create, save-from-layer, delete, JSON import/export, and restoring the built-in library. Data is stored locally in the browser.
+The presets dropdown applies mode/power/feed/passes for a material/thickness/powder/effect in one click. The manager supports create, save-from-layer, delete, JSON import/export, and restoring the built-in library. Data is stored locally in the browser.
+
+**Powder field (v1.11.0)**: presets gain a free-text **Powder** field (suggested format: vendor · color · grain · batch, e.g. "VendorX · black · fine · batch 2026-07"). Ignition parameters depend on the **powder × canvas** combination and cannot be decomposed — one preset records one measured combination. Old presets migrate automatically (empty powder). As always, preset values are estimates until measured.
+
+**Draft & Save (v1.11.0)**: everything you do inside the manager (edit fields, create, delete, import, load built-ins) is a **draft**; only the **Save presets** button persists it. Closing with unsaved changes asks for confirmation — undo an accidental edit or deletion by simply closing the window. "Export JSON" exports the current draft.
 
 ---
 
