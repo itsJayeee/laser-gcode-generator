@@ -2,6 +2,10 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.13.0 (2026-07-28)
+### Test grid: per-cell editable S/F
+- The grid dialog now renders a real editable table (the full Google-Docs-table idea): every cell has its own S and F inputs (amplitude % for motor), prefilled from the row/column step rules. Edit any cell freely; "Refill all cells from steps" re-applies the rules. Resizing rows/columns keeps existing cell values and fills new cells from the rules. Cell values persist with the other grid settings, and G-code annotations / the parameter map reflect the actual per-cell values.
+
 ## v1.12.0 (2026-07-28)
 ### Test grid generator
 - New "Test grid" section opens a generator that needs no SVG: pick rows × columns with a Google-Docs-style sweep picker, set line length / row gap / column gap, and get stepped test lines in one click. Laser: rows step S, columns step F (S/F start + increment; M3/M4 selectable). Motor: rows step amplitude % with a fixed F (M3 forced). Each cell is annotated in the G-code (`; r2c3: S500 F1200`), a copyable parameter map is shown (highest-S row on top, matching the canvas), the footprint is displayed live, output previews on the canvas and downloads as `testgrid.nc`, and settings are remembered.

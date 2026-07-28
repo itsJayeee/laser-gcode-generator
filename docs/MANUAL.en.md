@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.12.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.13.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 
@@ -180,13 +180,13 @@ The presets dropdown applies mode/power/feed/passes for a material/thickness/pow
 
 ---
 
-## 10.5 Test grid generator (v1.12.0)
+## 10.5 Test grid generator (v1.12.0; per-cell editing since v1.13.0)
 
 "Test grid" in the left column opens a generator that needs **no SVG import** — for material/powder calibration:
 
 1. Sweep-pick rows × columns like inserting a table in Google Docs (or type numbers, up to 20×20);
-2. Laser: **rows step S** (start + per-row increment, raw S values capped at the $30 setting), **columns step F** (start + per-column increment); M3/M4 selectable. To test one variable only, set columns to 1;
-3. Motor: rows step amplitude %, F is a single fixed value (M3 forced); in dual mode a device selector appears;
+2. The dialog shows a **real editable table** (v1.13.0): every cell has its own S and F inputs (amplitude % for motor), prefilled from the step rules — rows step S, columns step F by default (raw S values capped at the $30 setting; M3/M4 selectable). **Any cell can be hand-edited to any combination**; "Refill all cells from steps" resets the table. Resizing keeps existing cell values and fills new cells from the rules;
+3. Motor: per-cell amplitude %, one fixed F (M3 forced); in dual mode a device selector appears;
 4. Set line length / row gap / column gap; the total footprint is shown live — check it against your canvas;
 5. Generate → normal preview → downloads as `testgrid.nc`.
 
