@@ -2,6 +2,22 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.12.0 (2026-07-28)
+### Test grid generator
+- New "Test grid" section opens a generator that needs no SVG: pick rows × columns with a Google-Docs-style sweep picker, set line length / row gap / column gap, and get stepped test lines in one click. Laser: rows step S, columns step F (S/F start + increment; M3/M4 selectable). Motor: rows step amplitude % with a fixed F (M3 forced). Each cell is annotated in the G-code (`; r2c3: S500 F1200`), a copyable parameter map is shown (highest-S row on top, matching the canvas), the footprint is displayed live, output previews on the canvas and downloads as `testgrid.nc`, and settings are remembered.
+
+### In-page dialogs (fixes "Save project does nothing")
+- All browser-native popups (`prompt`/`confirm`/`alert`, 15 call sites) are replaced with an in-page dialog. Browsers can silently suppress native dialogs ("prevent this page from creating additional dialogs"), which made Save project — and draft-discard confirmations — appear to do nothing. In-page dialogs are immune.
+
+### Motor layers: single amplitude for uniform strokes
+- With stroke style "Uniform" the layer now shows a single **Amplitude %** field (min/max/γ/look-ahead hidden — they have no effect on a constant-width line) and the G-code uses that amplitude directly, bypassing profile curves. Variable-width styles keep the full min/max/γ/look-ahead controls.
+
+### Default feeds per device
+- New layers default to F1000 (laser) / F3000 (motor); switching a layer's device or the job mode resets the layer feed to that device's default. Per-color parameter memory still overrides defaults for previously used colors.
+
+### Preview
+- Travel (rapid) dashed lines are now green (#4f7a3f) so cutting and travel paths are distinguishable at a glance; legend updated.
+
 ## v1.11.0 (2026-07-27)
 ### Fixed — project load failing intermittently
 - "Load project" (and SVG / preset-JSON pickers) reset the file input **synchronously** while the file was still being read asynchronously; on some engines (notably WebKit) clearing the input invalidates the `File` mid-read, so loading silently did nothing. The reset now happens only after the read settles, and a read failure shows an explicit "invalid project file" alert instead of failing silently. The failure looked mode-dependent (reported as "can't load in motor mode") but was a timing race.

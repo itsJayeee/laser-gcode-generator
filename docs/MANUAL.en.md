@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.11.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.12.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 
@@ -54,6 +54,8 @@ Supports path/line/polyline/polygon/rect/circle/ellipse. **Layers are split by s
 | Purge before powder | Pre-runs the powder flow at a waste location, see §9.5 |
 
 ---
+
+**Default feeds (v1.12.0)**: new layers default to F1000 (laser) / F3000 (motor); switching a layer's device or the job mode resets the feed to that device's default. Per-color memory still restores your last-used values.
 
 ## 4. Path modes (laser layers)
 
@@ -137,6 +139,8 @@ The stroke style (uniform/taper/nib/brush) defines the design's width rhythm, wh
 - **Contrast γ**: exaggeration. γ>1 makes thin parts thinner (sharper tips); γ<1 fuller. Default 1;
 - **Look-ahead (mm)**: powder lags behind amplitude changes; this shifts amplitude changes earlier along the path to compensate. If stroke tips leave blobs, increase it (start at 3 mm).
 
+**Uniform strokes (v1.12.0)**: with stroke style "Uniform" the line width is constant, so the layer shows a single **Amplitude %** field and the G-code uses it directly (no profile curve, no γ). Min/max/γ/look-ahead appear only for variable-width styles.
+
 ### 9.3 Component profiles
 
 Every "3D-printed dispenser + powder" combination has different physics (line width range, dead zone, saturation). A **component profile** stores that combination's measured amplitude→width curve; switching profiles in the layer applies the right mapping. "Linear mapping" skips the curve and uses the amp range directly.
@@ -175,6 +179,20 @@ The presets dropdown applies mode/power/feed/passes for a material/thickness/pow
 **Draft & Save (v1.11.0)**: everything you do inside the manager (edit fields, create, delete, import, load built-ins) is a **draft**; only the **Save presets** button persists it. Closing with unsaved changes asks for confirmation — undo an accidental edit or deletion by simply closing the window. "Export JSON" exports the current draft.
 
 ---
+
+## 10.5 Test grid generator (v1.12.0)
+
+"Test grid" in the left column opens a generator that needs **no SVG import** — for material/powder calibration:
+
+1. Sweep-pick rows × columns like inserting a table in Google Docs (or type numbers, up to 20×20);
+2. Laser: **rows step S** (start + per-row increment, raw S values capped at the $30 setting), **columns step F** (start + per-column increment); M3/M4 selectable. To test one variable only, set columns to 1;
+3. Motor: rows step amplitude %, F is a single fixed value (M3 forced); in dual mode a device selector appears;
+4. Set line length / row gap / column gap; the total footprint is shown live — check it against your canvas;
+5. Generate → normal preview → downloads as `testgrid.nc`.
+
+Row 1 is at the bottom (Y=0); S increases upward. Every cell is annotated in the G-code (`; r2c3: S500 F1200`), and a copyable **parameter map** is shown (highest-S row on top, matching the canvas). Grid settings are remembered.
+
+**Dialogs (v1.12.0)**: all browser-native popups (project-name prompt, confirmations, notices) are replaced by in-page dialogs. The browser setting "prevent this page from creating additional dialogs" used to make "Save project" appear to do nothing; in-page dialogs are immune.
 
 ## 11. Preview & stats
 
