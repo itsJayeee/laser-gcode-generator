@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.13.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.14.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 
@@ -185,7 +185,7 @@ The presets dropdown applies mode/power/feed/passes for a material/thickness/pow
 "Test grid" in the left column opens a generator that needs **no SVG import** — for material/powder calibration:
 
 1. Sweep-pick rows × columns like inserting a table in Google Docs (or type numbers, up to 20×20);
-2. The dialog shows a **real editable table** (v1.13.0): every cell has its own S and F inputs (amplitude % for motor), prefilled from the step rules — rows step S, columns step F by default (raw S values capped at the $30 setting; M3/M4 selectable). **Any cell can be hand-edited to any combination**; "Refill all cells from steps" resets the table. Resizing keeps existing cell values and fills new cells from the rules;
+2. The dialog shows a **real editable table** (v1.13.0): every cell has its own S and F inputs (amplitude % for motor), prefilled from the step rules — S, F (and amplitude) each have **both row and column step increments** (v1.14.0): cell = start + row × row-step + col × col-step; zero out a direction you don't want (raw S values capped at the $30 setting; M3/M4 selectable). **Any cell can be hand-edited to any combination**; "Refill all cells from steps" resets the table. Resizing keeps existing cell values and fills new cells from the rules. After the first Generate the table is live: **any cell or setting change auto-regenerates the G-code and preview** (v1.14.0), until a normal SVG generation takes the output back over;
 3. Motor: per-cell amplitude %, one fixed F (M3 forced); in dual mode a device selector appears;
 4. Set line length / row gap / column gap; the total footprint is shown live — check it against your canvas;
 5. Generate → normal preview → downloads as `testgrid.nc`.

@@ -2,6 +2,11 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.14.0 (2026-07-28)
+### Test grid: dual-direction steps + live editing after generation
+- Both S and F (and motor amplitude) now have **row and column step increments**: cell = start + row × row-step + col × col-step. Sweep S down columns, F across rows, both at once, or zero one direction — any layout of the classic material-test card is expressible. Defaults keep the previous behavior (S per row, F per column).
+- After the first Generate, the grid stays live: editing any cell, changing a setting, or refilling **auto-regenerates the G-code and preview immediately** — no repeated button presses. A normal SVG generation or a calibration pattern takes the output back over and stops the grid's auto-regeneration.
+
 ## v1.13.0 (2026-07-28)
 ### Test grid: per-cell editable S/F
 - The grid dialog now renders a real editable table (the full Google-Docs-table idea): every cell has its own S and F inputs (amplitude % for motor), prefilled from the row/column step rules. Edit any cell freely; "Refill all cells from steps" re-applies the rules. Resizing rows/columns keeps existing cell values and fills new cells from the rules. Cell values persist with the other grid settings, and G-code annotations / the parameter map reflect the actual per-cell values.
