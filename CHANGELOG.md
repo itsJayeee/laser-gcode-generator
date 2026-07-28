@@ -2,6 +2,10 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.14.1 (2026-07-28)
+### Test grid: generates on open
+- Opening the test grid dialog now generates the G-code immediately — the Generate button is never required (it remains as a manual refresh). Combined with v1.14.0's live editing, the whole flow is: open → tweak cells/settings → everything updates in real time.
+
 ## v1.14.0 (2026-07-28)
 ### Test grid: dual-direction steps + live editing after generation
 - Both S and F (and motor amplitude) now have **row and column step increments**: cell = start + row × row-step + col × col-step. Sweep S down columns, F across rows, both at once, or zero one direction — any layout of the classic material-test card is expressible. Defaults keep the previous behavior (S per row, F per column).
