@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.14.1** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.15.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 
@@ -180,19 +180,19 @@ The presets dropdown applies mode/power/feed/passes for a material/thickness/pow
 
 ---
 
-## 10.5 Test grid generator (v1.12.0; per-cell editing since v1.13.0)
+## 10.5 Test page (dedicated page since v1.15.0)
 
-"Test grid" in the left column opens a generator that needs **no SVG import** — for material/powder calibration:
+The left column has two tabs: **Create** (the full SVG workflow) and **Test**. The Test tab swaps the whole left panel for the test workspace (the old dialog is gone), **generates G-code the moment you enter**, and every change updates live — for material/powder calibration:
 
-1. Sweep-pick rows × columns like inserting a table in Google Docs (or type numbers, up to 20×20);
-2. The dialog shows a **real editable table** (v1.13.0): every cell has its own S and F inputs (amplitude % for motor), prefilled from the step rules — S, F (and amplitude) each have **both row and column step increments** (v1.14.0): cell = start + row × row-step + col × col-step; zero out a direction you don't want (raw S values capped at the $30 setting; M3/M4 selectable). **Any cell can be hand-edited to any combination**; "Refill all cells from steps" resets the table. Resizing keeps existing cell values and fills new cells from the rules. After the first Generate the table is live: **any cell or setting change auto-regenerates the G-code and preview** (v1.14.0), until a normal SVG generation takes the output back over;
-3. Motor: per-cell amplitude %, one fixed F (M3 forced); in dual mode a device selector appears;
-4. Set line length / row gap / column gap; the total footprint is shown live — check it against your canvas;
-5. **Opening the dialog generates immediately** (v1.14.1) and every change updates in real time; the Generate button is only a manual refresh → normal preview → downloads as `testgrid.nc`.
+**T1 · Layout & steps**: sweep-pick rows × columns like inserting a table in Google Docs (or type numbers, up to 20×20); set line length / row gap / column gap; pick the device (laser/motor). S and F (amplitude % for motor) each have **row and column step increments**: cell = start + row × row-step + col × col-step; zero out unused directions. "Refill from steps" resets all lines to the rule values. Laser S is raw (capped at $30); M3/M4 selectable. Motor lines use amplitude % with one fixed F (M3 forced).
 
-Row 1 is at the bottom (Y=0); S increases upward. Every cell is annotated in the G-code (`; r2c3: S500 F1200`), and a copyable **parameter map** is shown (highest-S row on top, matching the canvas). Grid settings are remembered.
+**T2 · Lines**: every line gets its own color (matching swatches in the list and the preview) and two checkboxes — **1st = export this line** (unchecked lines are excluded from the G-code), 2nd = select (for grouping); S/F (or amp %) editable per line with instant regeneration.
 
-**Dialogs (v1.12.0)**: all browser-native popups (project-name prompt, confirmations, notices) are replaced by in-page dialogs. The browser setting "prevent this page from creating additional dialogs" used to make "Save project" appear to do nothing; in-page dialogs are immune.
+**T3 · Groups (manual)**: tick lines and press "Group selected lines". Groups can be renamed, toggle export for all members, batch-edit S/F/amplitude (one value applies to the whole group), and share one preview color; "Ungroup" restores. Group membership is annotated in G-code comments (`; r2c3 [Group 1]: S500 F900`).
+
+Also: row 1 is at the bottom (Y=0); per-cell annotations and the copyable parameter map remain; the active tab, layout, per-line values, export flags and groups all persist; download `testgrid.nc` from the panel.
+
+**Dialogs (v1.12.0)**: all browser-native popups are replaced by in-page dialogs, immune to the browser's "prevent additional dialogs" setting.
 
 ## 11. Preview & stats
 

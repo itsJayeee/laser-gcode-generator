@@ -2,6 +2,13 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.15.0 (2026-07-28)
+### Dedicated Test page (replaces the test grid dialog)
+- The left column now has two tabs: **Create** (the full SVG workflow, unchanged) and **Test**. The Test tab swaps the whole left panel for the test workspace — no more modal — and generates G-code the moment you enter it; every subsequent change updates live.
+- **Line list**: every generated line gets its own deterministic color (shown in the preview and as a swatch in the list), a per-line **export checkbox** (unchecked lines are excluded from the G-code), and inline S/F (or amplitude %) editing.
+- **Manual grouping**: tick the select checkbox on any lines and press "Group selected lines". Groups can be renamed, toggle export for all members at once, batch-edit S/F/amplitude (one value applies to every member), and share one color in the preview; "Ungroup" restores individual lines. Group membership is annotated in the G-code comments.
+- Device (laser/motor) is now chosen directly inside the Test page; the active tab, layout, cells, export flags and groups all persist across sessions. Downloads via a dedicated button as `testgrid.nc`.
+
 ## v1.14.1 (2026-07-28)
 ### Test grid: generates on open
 - Opening the test grid dialog now generates the G-code immediately — the Generate button is never required (it remains as a manual refresh). Combined with v1.14.0's live editing, the whole flow is: open → tweak cells/settings → everything updates in real time.
