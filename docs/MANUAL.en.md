@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.15.2** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.15.3** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 
@@ -45,7 +45,7 @@ Supports path/line/polyline/polygon/rect/circle/ellipse. **Layers are split by s
 |---|---|
 | Output width (mm) | Physical width of the result; height follows the aspect ratio |
 | Origin | Bottom-left (all-positive coordinates) or centered |
-| S max ($30) | Must match GRBL `$30`, otherwise power percentages are wrong. LaserGRBL default is 1000 |
+| S max ($30) | Must match GRBL `$30`, otherwise power percentages are wrong. LaserGRBL default is 1000. **S vs. power%: power% = S ÷ $30 × 100** — with $30=1000, S450=45% while S45 is only 4.5%. Power/amplitude inputs show their live S equivalent (v1.15.3) |
 | Rapid G0 | Travel speed, used for time estimates |
 | Air assist (M8/M9) | Inserts M8/M9 at start/end |
 | Frame before job | Traces the bounding box at zero power to verify placement |

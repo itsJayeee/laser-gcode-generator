@@ -2,6 +2,10 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.15.3 (2026-07-29)
+### Clarified — S value vs. power percent
+- The relationship (power% = S ÷ $30 × 100; with $30=1000, S450 = 45% and S45 = 4.5%) was easy to misread. Laser power % and motor amplitude % inputs now show their live S equivalent next to the label (e.g. "Power% =S300"), updating with the $30 setting; the Test page shows a conversion legend. Manuals gained an explicit explanation.
+
 ## v1.15.2 (2026-07-29)
 ### Fixed — stats bar empty on the Test page
 - Test-grid generation now fills the top stats bar: travel distance (grid runs in generation order, no optimization, so before/after are equal), cut length, estimated time (per-line feed rates + rapids), and G-code line count.
