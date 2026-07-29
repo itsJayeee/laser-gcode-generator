@@ -2,6 +2,12 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.15.1 (2026-07-29)
+### Performance & robustness (code review pass)
+- **hatchFill scanline sweep**: fill hatching now uses an active-edge table (edges sorted by lowest point; each scanline only tests edges actually spanning it) instead of testing every edge on every scanline. ~2× faster on dense fills (3000-edge polygon at 0.05mm: 612ms → 296ms); output verified byte-identical across 450 randomized cases.
+- **normColor context reuse**: color normalization previously created a new `<canvas>` per call — importing a large SVG created thousands of throwaway canvases. One shared context is now reused.
+- **Dialog queue**: two in-page dialogs requested back-to-back previously clobbered each other — the first callback never fired and its flow silently died. Dialogs now queue and resolve in order.
+
 ## v1.15.0 (2026-07-28)
 ### Dedicated Test page (replaces the test grid dialog)
 - The left column now has two tabs: **Create** (the full SVG workflow, unchanged) and **Test**. The Test tab swaps the whole left panel for the test workspace — no more modal — and generates G-code the moment you enter it; every subsequent change updates live.
