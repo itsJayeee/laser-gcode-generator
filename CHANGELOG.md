@@ -2,6 +2,10 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.15.2 (2026-07-29)
+### Fixed — stats bar empty on the Test page
+- Test-grid generation now fills the top stats bar: travel distance (grid runs in generation order, no optimization, so before/after are equal), cut length, estimated time (per-line feed rates + rapids), and G-code line count.
+
 ## v1.15.1 (2026-07-29)
 ### Performance & robustness (code review pass)
 - **hatchFill scanline sweep**: fill hatching now uses an active-edge table (edges sorted by lowest point; each scanline only tests edges actually spanning it) instead of testing every edge on every scanline. ~2× faster on dense fills (3000-edge polygon at 0.05mm: 612ms → 296ms); output verified byte-identical across 450 randomized cases.

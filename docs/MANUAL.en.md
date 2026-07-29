@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.15.1** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.15.2** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 
@@ -190,7 +190,7 @@ The left column has two tabs: **Create** (the full SVG workflow) and **Test**. T
 
 **T3 · Groups (manual)**: tick lines and press "Group selected lines". Groups can be renamed, toggle export for all members, batch-edit S/F/amplitude (one value applies to the whole group), and share one preview color; "Ungroup" restores. Group membership is annotated in G-code comments (`; r2c3 [Group 1]: S500 F900`).
 
-Also: row 1 is at the bottom (Y=0); per-cell annotations and the copyable parameter map remain; the active tab, layout, per-line values, export flags and groups all persist; download `testgrid.nc` from the panel.
+Also: the top stats bar (travel / cut length / estimated time / line count) works here too (v1.15.2; the grid runs in generation order, no travel optimization); row 1 is at the bottom (Y=0); per-cell annotations and the copyable parameter map remain; the active tab, layout, per-line values, export flags and groups all persist; download `testgrid.nc` from the panel.
 
 **Dialogs (v1.12.0)**: all browser-native popups are replaced by in-page dialogs, immune to the browser's "prevent additional dialogs" setting.
 
