@@ -2,6 +2,15 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.15.4 (2026-07-29)
+### Performance — faster "Computing…" on moderately complex files
+- **Path ordering**: the grid-based nearest-neighbor now kicks in from 400 paths (was 1200). The 400–1200 band previously ran the O(n²×candidates) exact pass and was the main cause of long "Computing…" stalls. Benchmarks (800 closed contours): 1058ms → 81ms; 1200 contours: 1970ms → 82ms — with identical resulting travel distance.
+- **Entry-candidate memoization**: candidate arrays for closed contours were rebuilt on every nearest-entry comparison during ordering; they are now cached per contour for the duration of a computation (n=300 exact pass: 588ms → 260ms, same output).
+- **Import sampling**: per-element sampling cap halved (6000 → 3000 points); `getPointAtLength` is the import hot path in some engines, and the later 0.03mm simplification erases any fidelity difference.
+
+### UI
+- Removed the header subtitle.
+
 ## v1.15.3 (2026-07-29)
 ### Clarified — S value vs. power percent
 - The relationship (power% = S ÷ $30 × 100; with $30=1000, S450 = 45% and S45 = 4.5%) was easy to misread. Laser power % and motor amplitude % inputs now show their live S equivalent next to the label (e.g. "Power% =S300"), updating with the $30 setting; the Test page shows a conversion legend. Manuals gained an explicit explanation.
