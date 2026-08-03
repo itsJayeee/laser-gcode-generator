@@ -2,6 +2,11 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.17.0 (2026-08-03)
+### Test page: easier line selection & grouping
+- **Click a card to select** — the second checkbox column is gone. Clicking a line card toggles its selection (highlighted border/background); Shift-click selects the whole range; clicking checkboxes or number inputs never affects selection. "Select all" remains.
+- **Marquee selection on the preview**: hold **Shift and drag** on the preview canvas to draw a selection rectangle — every test line it touches is selected (added to the current selection). Plain drag still pans. Selected lines are drawn thicker in the preview, and selection stays in sync between canvas and list. Grouping is unchanged: select, then "Group selected lines" — a horizontal sweep grabs a row, a vertical sweep grabs a column.
+
 ## v1.16.2 (2026-08-03)
 ### Changed
 - Motor layers default to **outline** path mode (per workflow decision): powder traces the contour by default; centerline (skeleton + width rhythm) and fill remain selectable per layer.

@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.16.2** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.17.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 
@@ -192,7 +192,7 @@ The left column has two tabs: **Create** (the full SVG workflow) and **Test**. T
 
 **T1 · Layout & steps**: sweep-pick rows × columns like inserting a table in Google Docs (or type numbers, up to 20×20); set line length / row gap / column gap; pick the device (laser/motor). S and F (amplitude % for motor) each have **row and column step increments**: cell = start + row × row-step + col × col-step; zero out unused directions. Step refill is split into **Fill S / Fill F / Fill amplitude** (v1.16.0) — refilling one variable never touches hand-edits of the others. Laser S is raw (capped at $30); M3/M4 selectable. Motor lines use amplitude % with one fixed F (M3 forced).
 
-**T2 · Lines**: every line gets its own color (matching swatches in the list and the preview) and two checkboxes — **1st = export this line** (unchecked lines are excluded from the G-code), 2nd = select (for grouping); S/F (or amp %) editable per line with instant regeneration.
+**T2 · Lines**: every line gets its own color (matching swatches in the list and the preview). The checkbox = **export this line** (unchecked lines are excluded); **click the card itself to select** (highlighted, v1.17.0), Shift-click for ranges — clicking checkboxes/inputs never affects selection; S/F (or amp %) editable per line with instant regeneration. **Shift+drag on the preview canvas = marquee select**: every line the rectangle touches joins the selection (selected lines draw thicker); a horizontal sweep grabs a row, a vertical one a column; plain drag still pans.
 
 **T3 · Groups (manual)**: tick lines and press "Group selected lines". Groups can be renamed, toggle export for all members, batch-edit S/F/amplitude (one value applies to the whole group), and share one preview color; "Ungroup" restores. Group membership is annotated in G-code comments (`; r2c3 [Group 1]: S500 F900`).
 
