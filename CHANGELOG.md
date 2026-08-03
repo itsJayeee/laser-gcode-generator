@@ -2,6 +2,13 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.16.1 (2026-08-03)
+### Fixed (bug-hunt review pass)
+- Motor job mode: newly imported layers now default to **centerline** path mode (the historical powder behavior). v1.16.0 defaulted them to "outline", which silently changed closed shapes from skeleton-tracing to contour-tracing.
+- Drag reorder: moving another card no longer shifts which layer is expanded — selection follows the layer object, not its index.
+- Shift range-select on layer checkboxes could crash after importing a file with fewer layers (stale range index); guarded and reset on import.
+- Group batch-edit inputs are now included in focus restoration after list re-renders.
+
 ## v1.16.0 (2026-08-03)
 ### Layer ordering = list order, with drag-to-reorder
 - The per-layer "order" number field is gone. Processing order is simply the list, top to bottom (badge shows #1, #2, …). Click **Edit order** to enter reorder mode — cards collapse and become draggable — then **Done** to lock. Powder still always runs before laser in dual mode. Saved projects/memory restore their order automatically.
