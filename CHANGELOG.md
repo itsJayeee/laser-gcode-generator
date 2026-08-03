@@ -2,6 +2,30 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.16.0 (2026-08-03)
+### Layer ordering = list order, with drag-to-reorder
+- The per-layer "order" number field is gone. Processing order is simply the list, top to bottom (badge shows #1, #2, …). Click **Edit order** to enter reorder mode — cards collapse and become draggable — then **Done** to lock. Powder still always runs before laser in dual mode. Saved projects/memory restore their order automatically.
+
+### Select-all + Shift range selection
+- "Select all" checkboxes for layer enable, and on the Test page for both the export column and the select column (with indeterminate state). Shift-click any checkbox to apply the click to the whole range since your last click — in all three places.
+
+### Test page: per-variable step refill
+- "Refill from steps" is now split per variable: **Fill S / Fill F / Fill amplitude**. Refilling one variable never touches hand-edited values of the others.
+
+### Motor layers: centerline / outline / fill path modes
+- Powder layers now offer three path modes: **centerline** (previous behavior, width-rhythm amplitude modulation), **outline** (trace contours at constant amplitude), and **fill** (parallel powder lines inside closed shapes at the layer's fill spacing/angle, incl. perpendicular-to-stroke direction, constant amplitude). "Thicken" is meaningless for powder and maps to centerline.
+
+### Focus no longer lost while editing
+- The layer list and test-line list re-render on every change; the input focus (and cursor position) is now restored afterward, so Tab-through editing works.
+
+### Always-visible download + progress
+- The "Generate & optimize" button is removed (generation has been automatic since v1.11); the download button sits in a sticky footer that is always visible on both pages, with a live status line showing "Computing Ns…" during long jobs and "ready" after.
+
+### Cleanups
+- Switching from the Test page back to Create regenerates the SVG output (or clears the panel if nothing is imported), so a stale testgrid can no longer be downloaded by accident.
+- Group batch-edit inputs now echo the group's value when all members agree.
+- Calibration wizard dialog restyled (padded single-column layout, consistent buttons); Esc closes it.
+
 ## v1.15.4 (2026-07-29)
 ### Performance — faster "Computing…" on moderately complex files
 - **Path ordering**: the grid-based nearest-neighbor now kicks in from 400 paths (was 1200). The 400–1200 band previously ran the O(n²×candidates) exact pass and was the main cause of long "Computing…" stalls. Benchmarks (800 closed contours): 1058ms → 81ms; 1200 contours: 1970ms → 82ms — with identical resulting travel distance.

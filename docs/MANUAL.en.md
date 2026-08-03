@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.15.4** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.16.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is a **single-file HTML app** built for a robot-arm painting workflow: dual-tool powder dispensing (vibration motor) + laser burning. It also works as a general laser engraving/cutting G-code generator. No installation — open `gcode_generator.html` in a browser (Chrome/Edge recommended).
 
@@ -56,6 +56,12 @@ Supports path/line/polyline/polygon/rect/circle/ellipse. **Layers are split by s
 ---
 
 **Default feeds (v1.12.0)**: new layers default to F1000 (laser) / F3000 (motor); switching a layer's device or the job mode resets the feed to that device's default. Per-color memory still restores your last-used values.
+
+**Processing order (v1.16.0)**: the per-layer order number is gone — **list order, top to bottom, is the processing order** (#1, #2 badges). "Edit order" enters drag mode (cards collapse and drag), "Done" locks. Powder always runs before laser in dual mode; list order only decides ordering within each phase.
+
+**Select-all & Shift ranges (v1.16.0)**: layer-enable, and the Test page's export and select columns all have "select all"; every checkbox supports **Shift-click range selection**.
+
+**Also (v1.16.0)**: input focus is restored after list re-renders (Tab-through works); the Generate button is removed (generation is automatic) and the download button sits in an always-visible sticky footer with a "Computing Ns…"/"ready" status line.
 
 ## 4. Path modes (laser layers)
 
@@ -184,7 +190,7 @@ The presets dropdown applies mode/power/feed/passes for a material/thickness/pow
 
 The left column has two tabs: **Create** (the full SVG workflow) and **Test**. The Test tab swaps the whole left panel for the test workspace (the old dialog is gone), **generates G-code the moment you enter**, and every change updates live — for material/powder calibration:
 
-**T1 · Layout & steps**: sweep-pick rows × columns like inserting a table in Google Docs (or type numbers, up to 20×20); set line length / row gap / column gap; pick the device (laser/motor). S and F (amplitude % for motor) each have **row and column step increments**: cell = start + row × row-step + col × col-step; zero out unused directions. "Refill from steps" resets all lines to the rule values. Laser S is raw (capped at $30); M3/M4 selectable. Motor lines use amplitude % with one fixed F (M3 forced).
+**T1 · Layout & steps**: sweep-pick rows × columns like inserting a table in Google Docs (or type numbers, up to 20×20); set line length / row gap / column gap; pick the device (laser/motor). S and F (amplitude % for motor) each have **row and column step increments**: cell = start + row × row-step + col × col-step; zero out unused directions. Step refill is split into **Fill S / Fill F / Fill amplitude** (v1.16.0) — refilling one variable never touches hand-edits of the others. Laser S is raw (capped at $30); M3/M4 selectable. Motor lines use amplitude % with one fixed F (M3 forced).
 
 **T2 · Lines**: every line gets its own color (matching swatches in the list and the preview) and two checkboxes — **1st = export this line** (unchecked lines are excluded from the G-code), 2nd = select (for grouping); S/F (or amp %) editable per line with instant regeneration.
 
