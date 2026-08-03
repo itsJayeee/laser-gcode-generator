@@ -2,6 +2,10 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.16.2 (2026-08-03)
+### Changed
+- Motor layers default to **outline** path mode (per workflow decision): powder traces the contour by default; centerline (skeleton + width rhythm) and fill remain selectable per layer.
+
 ## v1.16.1 (2026-08-03)
 ### Fixed (bug-hunt review pass)
 - Motor job mode: newly imported layers now default to **centerline** path mode (the historical powder behavior). v1.16.0 defaulted them to "outline", which silently changed closed shapes from skeleton-tracing to contour-tracing.
