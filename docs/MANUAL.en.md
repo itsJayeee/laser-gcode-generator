@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.17.1** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.18.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is **one HTML file** — open it in a browser (Chrome/Edge recommended) and it just works, nothing to install. It was built for a robot-arm painting workflow: a vibration motor that dispenses gunpowder plus a laser that ignites it, working as a pair. It also works as a regular laser engraving/cutting G-code generator.
 
@@ -88,6 +88,7 @@ Each layer picks its own:
 - **Centerline**: for thick-stroke shapes, run once along the middle. Good for turning outlined fonts into single-line engraving.
 - **Fill**: sweep the inside of closed shapes full of parallel lines. Settings in §5.
 - **Thicken**: widen a single line into a stroke with real width, then fill it. Good for single-line fonts and handwriting. Settings in §6.
+- **Circles**: draw a circle every so often along the line; the line itself is not drawn. Circle **size** and **spacing** can each be fixed or random (random results come out identical on every generation of the same file); check "Fill circles" for solid circles, with a **fill density** (mm — smaller numbers fill more solidly).
 
 ---
 
@@ -154,7 +155,7 @@ Powder layers always come before laser, regardless of list order. With only one 
 
 The laser is like a "fine pen coloring in" (sweeping back and forth to fill an area); powder is a "thick pen, one stroke" — the line's width is controlled directly by the amplitude. In **centerline** mode a motor layer runs once along the middle of each line (open lines are followed as-is; closed shapes get their middle line found automatically), and the thickness rhythm is encoded in the S value (=amplitude) changing segment by segment along the way. Powder uses **M3 constant mode**, not M4: M4 would drop the amplitude during speed-ups and slow-downs and make the powder flow unsteady.
 
-**Powder path modes**: motor layers also have three path modes — **Outline** (default: trace the drawn outline once, constant amplitude), **Centerline** (the middle-line behavior above, with thickness rhythm), **Fill** (parallel powder lines inside closed shapes, constant amplitude; a powder line is several mm wide, so spacing ≥2mm is recommended). Outline/fill modes use a single "Amplitude %" value.
+**Powder path modes**: motor layers have four path modes — **Outline** (default: trace the drawn outline once, constant amplitude), **Centerline** (the middle-line behavior above, with thickness rhythm), **Fill** (parallel powder lines inside closed shapes, constant amplitude; a powder line is several mm wide, so spacing ≥2mm is recommended), and **Circles** (powder dots: the arm stops at points along the line and keeps vibrating for a few seconds so powder piles up into a dot; spacing and dwell time can each be fixed or random, and dot size depends on dwell time and amplitude — measure to find out). Outline/fill/circles modes use a single "Amplitude %" value.
 
 ### 9.2 Thickness rhythm → amplitude
 

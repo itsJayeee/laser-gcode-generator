@@ -2,6 +2,15 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.18.0 (2026-08-05)
+### New path mode: Circles (laser rings + motor powder dots)
+- New per-layer path mode **Circles** (laser and motor layers). The source line itself is not drawn; circles are placed along it.
+- **Laser**: a ring at each sample point. Circle size fixed or random (min–max diameter), spacing equal or random (min–max mm), optional solid fill via concentric rings with a **fill density** (ring step, mm). Rings enter the normal travel optimizer.
+- **Motor (powder dots)**: instead of tracing a circle, the arm parks at each sample point and dwells with the vibrator on (`G0` → `S<amp>` → `G4 P<sec>` → `S0`), piling powder into a dot. Spacing equal/random; dwell fixed or random (min–max s); single amplitude%. Dwell params are emit-time only (not in GEOF), so editing dwell never recomputes geometry.
+- All randomness is seeded from path coordinates (mulberry32) — same file always generates identical G-code.
+- Preview: laser rings render as normal contours; powder dots render as filled dots.
+- e2e: +14 tests (T10) covering mode buttons, ring generation, fill density, determinism of random size/spacing/dwell, dwell→G4 flow, dots-only output; 144 total passing.
+
 ## v1.17.1 (2026-08-05)
 ### Docs & UI copy: plain-language pass (no behavior changes)
 - Rewrote both manuals (zh-CN and en) in plain, non-technical language for users without a coding background. Added a small glossary table at the top of each manual explaining the everyday working terms (G-code, .nc, S, $30, F, amplitude, M3/M4, M0, purge); removed programmer vocabulary (CSS classes/inline styles/inheritance, normalization, normal direction, deterministic seed, etc.) in favor of describing what the user sees and does.
