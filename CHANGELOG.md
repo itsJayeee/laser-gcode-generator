@@ -2,6 +2,10 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.19.1 (2026-08-05)
+### UI tweak
+- Download button is no longer sticky: it sits in normal flow at the very bottom of the left panel (visible only when scrolled to the bottom), per user preference.
+
 ## v1.19.0 (2026-08-05)
 ### Canvas placement & canvas framing (physical alignment helper)
 - New global "Place on actual canvas": enter real canvas width/height (inch or mm toggle) and position the artwork inside it (centered, or custom offsets from the canvas's left/bottom edges).

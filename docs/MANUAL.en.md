@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.19.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.19.1** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is **one HTML file** — open it in a browser (Chrome/Edge recommended) and it just works, nothing to install. It was built for a robot-arm painting workflow: a vibration motor that dispenses gunpowder plus a laser that ignites it, working as a pair. It also works as a regular laser engraving/cutting G-code generator.
 
@@ -91,7 +91,7 @@ Solves "the drawing lands outside / doesn't line up with my canvas". When enable
 
 **Select all & range select**: the layer enable column and the test page's export/select columns each have a "select all" box; any column of checkboxes supports **Shift range-select**: click one, hold Shift, click another, and everything in between follows.
 
-**Other**: after changing a value the cursor returns to the same box (press Tab to hop through them); there is no "Generate" button (generation is always automatic), the download button is pinned to the bottom of the left panel, with a status line under it showing "computing Ns…" or "ready".
+**Other**: after changing a value the cursor returns to the same box (press Tab to hop through them); there is no "Generate" button (generation is always automatic), the download button sits at the very bottom of the left panel (scroll down to reach it), with a status line under it showing "computing Ns…" or "ready".
 
 ## 4. Path modes (laser layers)
 
