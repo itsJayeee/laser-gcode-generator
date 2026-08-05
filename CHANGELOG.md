@@ -2,6 +2,12 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.17.1 (2026-08-05)
+### Docs & UI copy: plain-language pass (no behavior changes)
+- Rewrote both manuals (zh-CN and en) in plain, non-technical language for users without a coding background. Added a small glossary table at the top of each manual explaining the everyday working terms (G-code, .nc, S, $30, F, amplitude, M3/M4, M0, purge); removed programmer vocabulary (CSS classes/inline styles/inheritance, normalization, normal direction, deterministic seed, etc.) in favor of describing what the user sees and does.
+- Renamed UI labels/hints (zh + en) to match: "对比度 γ" → "粗细反差" (Width contrast), "前瞻补偿" → "提前量 mm" (Lead distance), "线性映射(振幅范围)" → "不用校准数据" (No calibration data), "垂直笔画(法线)" → "垂直于笔画" (Across the stroke), "起始处置零 (G92 X0 Y0)" → "以当前停的位置为起点 (G92)" (Start from current position), "S 上限 ($30)" → "S 上限 (=机器里的$30)" (S max (= machine $30)). Motor centerline hint and import/default hints rewritten in plain language.
+- CHANGELOG remains technical English by policy.
+
 ## v1.17.0 (2026-08-03)
 ### Test page: easier line selection & grouping
 - **Click a card to select** — the second checkbox column is gone. Clicking a line card toggles its selection (highlighted border/background); Shift-click selects the whole range; clicking checkboxes or number inputs never affects selection. "Select all" remains.
