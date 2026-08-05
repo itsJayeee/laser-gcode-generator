@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.18.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
+Applies to: **v1.19.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for history.
 
 This tool is **one HTML file** — open it in a browser (Chrome/Edge recommended) and it just works, nothing to install. It was built for a robot-arm painting workflow: a vibration motor that dispenses gunpowder plus a laser that ignites it, working as a pair. It also works as a regular laser engraving/cutting G-code generator.
 
@@ -65,12 +65,25 @@ Whether you drew your file in Illustrator, Figma, or Inkscape, as long as lines 
 | S max (= the machine's $30) | Enter the same number as the `$30` setting inside your machine, or the power percentages will be wrong. LaserGRBL default is 1000. Power/amplitude boxes show their matching S value live |
 | Rapid G0 | Speed of fast pen-up moves, used for time estimates |
 | Air pump/fan (M8/M9) | When checked, turns on at the start and off at the end |
-| Frame before job | Before the real job, the machine traces the drawing's outer box at zero power so you can check position and size |
+| Frame before job | Before the real job, the machine traces the drawing's outer box at zero power so you can check position and size. With "Place on actual canvas" on, it traces the **canvas border** instead, see §3.5 |
+| Place on actual canvas | Enter your real canvas size (inch or mm) and position the artwork inside it, see §3.5 |
 | Start from current position (G92) | Treats wherever the arm is **parked right now** as this job's starting point. A must for large canvases where the start point isn't fixed |
 | Motor offset dX/dY | The powder nozzle and the laser spot aren't in the same place — enter the difference, see §9.6 |
 | Purge before powder | Shake out powder at a chosen spot for a few seconds before the real job, to wake up the powder flow, see §9.5 |
 
 ---
+
+## 3.5 Place on actual canvas (alignment helper)
+
+Solves "the drawing lands outside / doesn't line up with my canvas". When enabled:
+
+1. **Enter the canvas size**: width × height, in inch or mm (a 10×10 inch canvas is just 10 and 10);
+2. **Choose artwork position**: "Centered" puts it in the middle; "Custom" takes distances from the canvas's left and bottom edges;
+3. The preview draws a **brown canvas frame** with a dot at the zero corner, so you see exactly where the artwork sits; a **red warning** appears if it sticks out;
+4. **Coordinate zero = the canvas's bottom-left corner.** Point the nozzle tip (or laser dot) at that corner and zero before starting;
+5. With "Frame before job" on, the machine first traces the canvas border at zero power and then **pauses (M0)** — if the traced frame matches your physical canvas, hit resume in LaserGRBL; if not, hit stop, move the canvas or re-zero, and run it again.
+
+> Tip: if the traced frame comes out tilted, the canvas is sitting tilted — move the canvas to match the frame (the machine will draw exactly where the frame went). Bumped the arm? Re-point the nozzle at the canvas corner, re-zero, trace the frame again to confirm.
 
 **Default speeds**: new layers default to F=1000 (laser) / F=3000 (motor); switching device or job mode restores that device's default. Colors you've used before still get their last-used values back first.
 

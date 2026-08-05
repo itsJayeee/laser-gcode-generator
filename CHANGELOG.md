@@ -2,6 +2,15 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.19.0 (2026-08-05)
+### Canvas placement & canvas framing (physical alignment helper)
+- New global "Place on actual canvas": enter real canvas width/height (inch or mm toggle) and position the artwork inside it (centered, or custom offsets from the canvas's left/bottom edges).
+- Coordinate zero becomes the canvas bottom-left corner; the origin selector is hidden while canvas mode is on.
+- "Frame before job" now traces the **canvas border** (not the artwork bbox) at zero power and ends with `M0` so the user can verify the traced frame matches the physical canvas before resuming.
+- Preview draws the canvas frame (brown) with a zero-corner marker and fits the view to the whole canvas; a red warning appears when the artwork exceeds the canvas.
+- Canvas placement participates in geoKey (geometry cache) and persists via workspace/globals like other settings.
+- e2e: +10 tests (T11) covering inch→mm conversion, centered/custom placement, M0 pause, overflow warning, and fallback framing; 154 total passing.
+
 ## v1.18.0 (2026-08-05)
 ### New path mode: Circles (laser rings + motor powder dots)
 - New per-layer path mode **Circles** (laser and motor layers). The source line itself is not drawn; circles are placed along it.
