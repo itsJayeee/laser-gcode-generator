@@ -21,7 +21,7 @@
 
 ## 2. 导入文件（SVG）
 
-支持 path/line/polyline/polygon/rect/circle/ellipse 等元素。**图层按描边颜色自动划分**：图里用了几种颜色，就得到几个可独立设参的图层。颜色识别支持所有主流写法（CSS 类、内联 style、父级 `<g>` 继承、直接属性），Illustrator / Figma / Inkscape 导出的文件都能正确分层。
+支持 path/line/polyline/polygon/rect/circle/ellipse 等元素。**图层按描边颜色自动划分**：图里用了几种颜色，就得到几个可独立设参的图层。颜色识别支持所有主流写法，Illustrator / Figma / Inkscape 导出的文件都能正确分层。
 
 > 示例：想让"先撒粉的笔画"和"只用激光的细节"分开控制，在设计软件里把它们画成两种颜色（如红色和黑色）即可，导入后就是两个独立图层。
 
