@@ -2,6 +2,10 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.19.2 (2026-08-06)
+### Documentation
+- Rewrote both manuals (zh-CN and en) in standard user-manual register: neutral instructional tone, formalized notes/tips/examples, removed conversational phrasing — while keeping the beginner-friendly plain-language vocabulary and the glossary. No behavior changes.
+
 ## v1.19.1 (2026-08-05)
 ### UI tweak
 - Download button is no longer sticky: it sits in normal flow at the very bottom of the left panel (visible only when scrolled to the bottom), per user preference.
