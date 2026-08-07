@@ -2,6 +2,10 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.19.3 (2026-08-06)
+### Documentation
+- Replaced the section symbol (§) with spelled-out references throughout both manuals ("第 X 节" / "Section X") for readers unfamiliar with the notation.
+
 ## v1.19.2 (2026-08-06)
 ### Documentation
 - Rewrote both manuals (zh-CN and en) in standard user-manual register: neutral instructional tone, formalized notes/tips/examples, removed conversational phrasing — while keeping the beginner-friendly plain-language vocabulary and the glossary. No behavior changes.

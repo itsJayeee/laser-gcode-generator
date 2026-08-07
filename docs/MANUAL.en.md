@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.19.2** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for revision history.
+Applies to: **v1.19.3** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for revision history.
 
 The tool is a single HTML file that runs directly in a web browser (Chrome or Edge recommended); no installation is required. It is designed for a robot-arm painting workflow in which a vibration motor dispenses gunpowder and a laser ignites it. It can also be used as a general-purpose G-code generator for laser engraving and cutting.
 
@@ -67,11 +67,11 @@ Regardless of whether the file was drawn in Illustrator, Figma, or Inkscape, lin
 | S max (= the machine's $30) | Must match the `$30` setting inside the machine; otherwise power percentages are incorrect. The LaserGRBL default is 1000. Power and amplitude fields display their corresponding S value in real time |
 | Rapid G0 | Speed of pen-up rapid moves, used for time estimation |
 | Air pump/fan (M8/M9) | When checked, switches on at the start of the job and off at the end |
-| Frame before job | Before the actual job, the machine traces the drawing's bounding box at zero power to verify position and size. With "Place on actual canvas" enabled, the **canvas border** is traced instead; see §3.5 |
-| Place on actual canvas | Enter the actual canvas size (inch or mm) and position the artwork inside it; see §3.5 |
+| Frame before job | Before the actual job, the machine traces the drawing's bounding box at zero power to verify position and size. With "Place on actual canvas" enabled, the **canvas border** is traced instead; see Section 3.5 |
+| Place on actual canvas | Enter the actual canvas size (inch or mm) and position the artwork inside it; see Section 3.5 |
 | Start from current position (G92) | Sets the arm's current parked position as the job's starting point. Recommended for large-format work without a fixed start point |
-| Motor offset dX/dY | The positional difference between the powder nozzle and the laser spot. Measurement procedure in §9.6 |
-| Purge before powder | Moves to a designated position and dispenses powder for a few seconds before the actual job; see §9.5 |
+| Motor offset dX/dY | The positional difference between the powder nozzle and the laser spot. Measurement procedure in Section 9.6 |
+| Purge before powder | Moves to a designated position and dispenses powder for a few seconds before the actual job; see Section 9.5 |
 
 ---
 
@@ -101,8 +101,8 @@ Each layer selects its own mode:
 
 - **Outline**: traces the drawn outline once. Suitable for cutting and line art.
 - **Centerline**: for shapes with stroke width, runs once along the middle. Suitable for converting outlined fonts to single-line engraving.
-- **Fill**: sweeps the interior of closed shapes with parallel lines. Settings in §5.
-- **Thicken**: widens a single line into a stroke with real width, then fills it. Suitable for single-line fonts and handwritten paths. Settings in §6.
+- **Fill**: sweeps the interior of closed shapes with parallel lines. Settings in Section 5.
+- **Thicken**: widens a single line into a stroke with real width, then fills it. Suitable for single-line fonts and handwritten paths. Settings in Section 6.
 - **Circles**: draws a circle at intervals along the line; the line itself is not drawn. Circle **size** and **spacing** can each be fixed or random (random results are identical on every generation of the same file). Check "Fill circles" for solid circles, with a **fill density** setting (mm; smaller values produce denser fill).
 
 ---
@@ -286,17 +286,17 @@ G0 X0.000 Y0.000 ; home
 
 **Only one black layer after importing an SVG?** An issue in old versions, since fixed. If it still occurs, check whether the SVG actually uses only one stroke color.
 
-**Some areas of thick material do not cut through?** See §5: set the fill sweep direction to "Perpendicular to stroke", and confirm `$32=1` and M4 for engraving. If it still does not cut through, add passes rather than reducing speed further.
+**Some areas of thick material do not cut through?** See Section 5: set the fill sweep direction to "Perpendicular to stroke", and confirm `$32=1` and M4 for engraving. If it still does not cut through, add passes rather than reducing speed further.
 
 **"Perpendicular to stroke" fill produces no output?** The shape is too broad to have stroke form; the tool has automatically reverted to fixed-angle fill. This is expected behavior.
 
-**Powder accumulates at stroke ends?** Increase the lead distance; see §9.2.
+**Powder accumulates at stroke ends?** Increase the lead distance; see Section 9.2.
 
-**The first powder line is incomplete?** Enable purge; see §9.5.
+**The first powder line is incomplete?** Enable purge; see Section 9.5.
 
-**Powder and laser do not coincide?** Measure the motor offset; see §9.6.
+**Powder and laser do not coincide?** Measure the motor offset; see Section 9.6.
 
-**Results change after switching powder or dispenser parts?** Create a component profile for each combination (§9.3); use quick drift calibration for day-to-day drift (§9.4).
+**Results change after switching powder or dispenser parts?** Create a component profile for each combination (Section 9.3); use quick drift calibration for day-to-day drift (Section 9.4).
 
 **Does the gunpowder burst style generate different sparks each time?** No. The same file generates identical G-code every time.
 
