@@ -2,6 +2,13 @@
 
 This project follows Semantic Versioning. A full snapshot of each release is archived under `versions/`.
 
+## v1.20.0 (2026-08-06)
+### Drag-to-position artwork on the canvas
+- In canvas mode, the artwork can now be dragged directly in the preview: press on the artwork and drag to move it within the canvas. On release the position mode switches to "Custom" and the offset fields update; generation reruns. Dragging on empty space still pans the view.
+- During the drag the artwork outline follows the cursor live (canvas frame and grid stay fixed); geometry recomputes only on release.
+- Hovering over the artwork shows a move cursor. Sub-0.01mm drags are ignored.
+- e2e: +5 tests (drag updates offsets and G-code, centered→custom switch, no-op threshold); 159 total passing.
+
 ## v1.19.3 (2026-08-06)
 ### Documentation
 - Replaced the section symbol (§) with spelled-out references throughout both manuals ("第 X 节" / "Section X") for readers unfamiliar with the notation.

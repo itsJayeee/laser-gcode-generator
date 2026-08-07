@@ -1,6 +1,6 @@
 # LaserGRBL G-code Generator · User Manual
 
-Applies to: **v1.19.3** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for revision history.
+Applies to: **v1.20.0** | [中文版](MANUAL.zh-CN.md) | This manual is updated with every release; see the [CHANGELOG](../CHANGELOG.md) for revision history.
 
 The tool is a single HTML file that runs directly in a web browser (Chrome or Edge recommended); no installation is required. It is designed for a robot-arm painting workflow in which a vibration motor dispenses gunpowder and a laser ignites it. It can also be used as a general-purpose G-code generator for laser engraving and cutting.
 
@@ -80,7 +80,7 @@ Regardless of whether the file was drawn in Illustrator, Figma, or Inkscape, lin
 Addresses artwork landing outside the canvas or failing to line up with it. When enabled:
 
 1. **Enter the canvas size**: width × height, in inch or mm (for a 10×10 inch canvas, enter 10 and 10);
-2. **Choose the artwork position**: "Centered" places the artwork in the middle of the canvas; "Custom" takes distances from the canvas's left and bottom edges;
+2. **Choose the artwork position**: "Centered" places the artwork in the middle of the canvas. The artwork can also be **dragged directly in the preview** to any position on the canvas (the change takes effect on release; the position switches to "Custom" and the number fields update automatically). The "Custom" number fields (distances from the canvas's left and bottom edges) are available for precise adjustment;
 3. The preview displays a **brown canvas frame** with a marker at the zero corner, showing the artwork's position within the canvas; a **red warning** appears if the artwork extends beyond the canvas;
 4. **The coordinate zero is the canvas's bottom-left corner.** Before starting, point the nozzle tip (or laser dot) at that corner and zero the position;
 5. With "Frame before job" enabled, the machine first traces the canvas border at zero power and then pauses (M0). Check whether the traced frame coincides with the physical canvas edges: if it does, press resume in LaserGRBL to start the job; if not, press stop, reposition the canvas or re-zero, and run again.
